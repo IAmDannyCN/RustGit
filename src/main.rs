@@ -1,7 +1,6 @@
 use clap::{Parser, Subcommand};
 
 mod commands;
-mod storage;
 mod utils;
 
 use commands::{
@@ -32,14 +31,24 @@ enum Commands {
     /// Add file(s) to the index (staging area)
     Add {
         /// List of files to add
-        #[arg(short, long)]
         files: Vec<String>,
     },
 
     /// Remove file(s) from the index
     Rm {
+        /// Allow recursive removal when a leading directory name is given.
+        #[arg(short = 'r', long)]
+        recursive: bool,
+
+        /// Override the up-to-date check.
+        #[arg(short = 'f', long)]
+        force: bool,
+
+        /// Use this option to unstage and remove paths only from the index. Working tree files, whether modified or not, will be left alone.
+        #[arg(long)]
+        cached: bool,
+
         /// List of files to remove
-        #[arg(short, long)]
         files: Vec<String>,
     },
 
@@ -81,7 +90,8 @@ fn main() {
     match cli.command {
         Commands::Init => init(),
         Commands::Add { files } => add(files),
-        Commands::Rm { files } => remove(files),
+        Commands::Rm { files, recursive, force, cached } =>
+            remove(files, recursive, force, cached),
         Commands::Commit { message } => commit(message),
         Commands::Branch { name, delete } => branch(name, delete),
         Commands::Checkout { branch } => checkout(branch),
