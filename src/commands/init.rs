@@ -23,7 +23,7 @@ pub fn init() {
 
     if let Err(e) = storage::write_file( &format!("{}/HEAD", git_directory), 
                                         "ref: refs/heads/master") {
-        println!("Cannot write to {}/HEAD: {}", git_directory, e);
+        eprintln!("Cannot write to {}/HEAD: {}", git_directory, e);
         process::exit(1);
     }
 }

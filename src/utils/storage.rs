@@ -27,11 +27,11 @@ pub fn create_file(file_name: &str) {
 pub fn create_nonexist_directory(directory_name: &str) {
     match fs::exists(&directory_name) {
         Ok(res) => if res == true {
-            println!("Directory {} already exists", directory_name);
+            eprintln!("Directory {} already exists", directory_name);
             process::exit(1);
         }
         Err(e) => {
-            println!("Error checking the exsitence of directory {}: {}", directory_name, e);
+            eprintln!("Error checking the exsitence of directory {}: {}", directory_name, e);
             process::exit(1);
         }
     }
@@ -42,11 +42,11 @@ pub fn create_nonexist_directory(directory_name: &str) {
 pub fn create_nonexist_file(file_name: &str) {
     match fs::exists(&file_name) {
         Ok(res) => if res == true {
-            println!("File {} already exists", file_name);
+            eprintln!("File {} already exists", file_name);
             process::exit(1);
         }
         Err(e) => {
-            println!("Error checking the exsitence of file {}: {}", file_name, e);
+            eprintln!("Error checking the exsitence of file {}: {}", file_name, e);
             process::exit(1);
         }
     }

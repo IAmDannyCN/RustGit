@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 
 mod commands;
 mod utils;
+mod core;
 
 use commands::{
     add::add,
@@ -85,6 +86,7 @@ enum Commands {
 }
 
 fn main() {
+    
     let cli = Cli::parse();
 
     match cli.command {

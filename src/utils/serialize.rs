@@ -12,13 +12,13 @@ pub fn deserialize(text: &str) -> String {
             match String::from_utf8(decoded_bytes) {
                 Ok(res) => res,
                 Err(e) => {
-                    println!("Deserialize error when converting Vec<u8> to String: {}", e);
+                    eprintln!("Deserialize error when converting Vec<u8> to String: {}", e);
                     process::exit(1)
                 }
             }
         }
         Err(e) => {
-            println!("Deserialize error when decoding base64: {}", e);
+            eprintln!("Deserialize error when decoding base64: {}", e);
             process::exit(1)
         }
     }

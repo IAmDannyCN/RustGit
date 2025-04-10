@@ -13,7 +13,7 @@ pub fn get_git_directory() -> String {
     match pwd() {
         Ok(path) => current_directory = path,
         Err(e) => {
-            println!("Error when fetching git directory: {}", e);
+            eprintln!("Error when fetching git directory: {}", e);
             process::exit(1)
         },
     };
