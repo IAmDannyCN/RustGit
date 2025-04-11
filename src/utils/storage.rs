@@ -1,5 +1,6 @@
 use std::fs;
 use std::io;
+use std::path::Path;
 use std::process;
 
 pub fn read_file(file_name: &str) -> Result<String, io::Error> {
@@ -7,7 +8,11 @@ pub fn read_file(file_name: &str) -> Result<String, io::Error> {
 }
 
 pub fn write_file(file_name: &str, contents: &str) -> io::Result<()> {
-    fs::write(file_name, contents)
+    let path = Path::new(file_name);
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).expect("write_file: failed to create parent folder.");
+    }
+    fs::write(path, contents)
 }
 
 pub fn create_directory(directory_name: &str) {
