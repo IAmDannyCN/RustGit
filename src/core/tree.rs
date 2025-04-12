@@ -43,10 +43,7 @@ impl TreeTrait for Tree {
 
         for line in full_content[4..].lines() {
             let parts: Vec<&str> = line.split('\0').collect();
-            if parts.len() != 3 {
-                eprintln!("read_tree: Malformed line: {:?}", line);
-                process::exit(1);
-            }
+            assert!(parts.len() == 3);
 
             let kind = parts[0];
             let name = parts[1].to_string();
