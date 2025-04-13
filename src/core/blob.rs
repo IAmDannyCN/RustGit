@@ -1,4 +1,6 @@
-use crate::utils::{hash, serialize};
+use std::process;
+
+use crate::utils::{hash, serialize, storage};
 use super::object::*;
 
 pub struct Blob {
@@ -45,3 +47,16 @@ impl BlobTrait for Blob {
         self.hash = Some(hash);
     }
 }
+
+pub fn get_blob_from_file(file_path: &str) -> Blob {
+
+    let blob_data = match storage::read_file(file_path) {
+        Ok(res) => res,
+        Err(e) => {
+            eprintln!("Error when reading blob file {} : {}", file_path, e);
+            process::exit(1)
+        }
+    };
+
+    Blob { hash: None, data: Some(blob_data)}
+} 

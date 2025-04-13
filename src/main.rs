@@ -27,7 +27,11 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// Initialize a new Git repository
-    Init,
+    Init {
+        /// Allow recursive removal when a leading directory name is given.
+        #[arg(short = 'b', long)]
+        initial_branch: Option<String>,
+    },
 
     /// Add file(s) to the index (staging area)
     Add {
@@ -90,7 +94,7 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Init => init(),
+        Commands::Init { initial_branch} => init(initial_branch),
         Commands::Add { files } => add(files),
         Commands::Rm { files, recursive, force, cached } =>
             remove(files, recursive, force, cached),

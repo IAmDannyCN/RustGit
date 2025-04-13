@@ -1,9 +1,22 @@
 use crate::utils::*;
 
-use std::process;
+use std::{fs, path::Path, process};
 
-pub fn init() {
+fn delete_original_directory(git_directory: &str) {
+    let path = Path::new(&git_directory);
+    if path.exists() {
+        if let Err(e) = fs::remove_dir_all(path) {
+            eprintln!("Error deleting original repository: {}", e);
+        } else {
+            println!("Reinitialized existing Git repository at: {}", git_directory);
+        }
+    }
+}
+
+pub fn init(initial_branch: Option<String>) {
     let git_directory: String = utils::get_git_directory();
+
+    delete_original_directory(&git_directory);
 
     use storage::create_nonexist_directory;
     use storage::create_nonexist_file;
@@ -21,8 +34,13 @@ pub fn init() {
     create_nonexist_file(&format!("{}/HEAD", git_directory));
     create_nonexist_file(&format!("{}/index", git_directory));
 
-    if let Err(e) = storage::write_file( &format!("{}/HEAD", git_directory), 
-                                        "ref: refs/heads/master") {
+    if let Err(e) = storage::write_file( 
+        &format!("{}/HEAD", git_directory), 
+        &format!("ref: refs/heads/{}", match initial_branch {
+            Some(name) => name,
+            None => "main".to_string()
+        })
+    ) {
         eprintln!("Cannot write to {}/HEAD: {}", git_directory, e);
         process::exit(1);
     }
