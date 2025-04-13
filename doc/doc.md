@@ -89,7 +89,7 @@ git add -A  ✅      ✅       ✅       整个仓库
 git add .   ✅      ✅       ❌       当前目录及子目录
 git add -u  ❌      ✅       ✅       整个仓库（仅已跟踪文件）
 ```
-
+- 可以添加多个文件。
 ---
 
 ## `rm` 命令
@@ -114,6 +114,9 @@ git add -u  ❌      ✅       ✅       整个仓库（仅已跟踪文件）
 --pathspec-file-nul
 ```
 
+### 特殊情况：
+
+- 可以删除多个文件。
 ---
 
 ## `commit` 命令
@@ -218,6 +221,7 @@ git add -u  ❌      ✅       ✅       整个仓库（仅已跟踪文件）
 
 - 注意`-r`需要配合其它命令选项
 - 显示分支时当前分支会以`*`标出
+- `-d`(或`-D`)可以删除多个分支。
 
 ---
 
@@ -257,6 +261,7 @@ git add -u  ❌      ✅       ✅       整个仓库（仅已跟踪文件）
 
 ### 特殊情况：
 - `-b`只会用来创造分支，而`-B`还可能用于把分支重置
+- 似乎可以恢复多个分支？
 ---
 
 ## `merge` 命令
@@ -300,20 +305,72 @@ git add -u  ❌      ✅       ✅       整个仓库（仅已跟踪文件）
 ```
 
 ### 特殊情况：
+
 - 可以合并多个文件。
 
-[//]: # (这个部分明天再写)
 ---
 
 ## `fetch` 命令
-（暂无详细说明）
 
+从远程仓库下载最新数据但不自动合并到本地工作区
+
+### 支持的命令选项：
+
+- `-h` 或 `--help`：显示帮助信息
+- `-q` 或 `--quiet`：静默模式，不输出信息
+- `--all`：从所有已配置的远程仓库下载数据
+- `--set-upstream`：为当前分支设置上游分支
+- `-f` 或 `--force`：强制覆盖本地引用
+- `-m` 或 `--multiple`：允许从多个远程仓库获取
+- `-t` 或 `--tags`：下载所有标签及其关联对象{我不确定是否要做}
+- `-n`：禁用标签下载{我不确定是否要做}
+- `-p` 或 `--prune`：删除本地已不存在的远程跟踪分支
+- `--dry-run`：模拟执行
+- `--write-fetch-head`：将获取的引用写入`.git/FETCH_HEAD`文件
+- `--shallow-since <time>`：仅获取指定时间之后的提交
+
+
+以下略：
+```
+-v, --verbose //显示更详细的信息
+-a, --append //将新获取的引用追加到 .git/FETCH_HEAD 文件
+--atomic
+--upload-pack <path>
+-j, --jobs <n> //并行获取子模块的数量(默认1)
+--prefetch
+--recurse-submodules[=<on-demand>] //递归获取子模块更新
+-P, --prune-tags //删除本地已不存在的远程标签
+--porcelain //生成机器可读的输出格式
+-k, --keep //保留下载的包文件，因为默认会清理临时文件
+-u, --update-head-ok
+--progress
+--depth <depth> //限制克隆历史深度，即浅克隆
+--shallow-exclude <revision> //排除特定提交及其历史
+--deepen <n> //深化浅克隆的历史深度
+--unshallow //将浅克隆转换为完整仓库
+--refetch //重新获取数据
+--refmap <refmap>
+-o, --server-option <option>
+-4, --ipv4; -6, --ipv6 //强制使用 IPv4 或 IPv6 网络协议
+--negotiation-tip <revision>
+--negotiate-only 
+--filter <args> //启用对象过滤
+--auto-maintenance; --auto-gc
+--show-forced-updates
+--write-commit-graph
+--stdin
+```
+
+### 特殊情况：
+
+- 注意这里的`-n`不代表模拟执行了。
+- 支持同时拉取多个分支
 ---
 
 ## `pull` 命令
-（暂无详细说明）
+要求改变，不写了
 
 ---
 
 ## `push` 命令
-（暂无详细说明）
+要求改变，不写了
