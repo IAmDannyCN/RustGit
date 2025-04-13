@@ -3,11 +3,23 @@ use std::io;
 use std::path::Path;
 use std::process;
 
-pub fn read_file(file_name: &str) -> Result<String, io::Error> {
+pub fn read_file(file_name: &str) -> Result<Vec<u8>, io::Error> {
+    fs::read(file_name)
+}
+
+pub fn write_file(file_name: &str, contents: &[u8]) -> io::Result<()> {
+    let path = Path::new(file_name);
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).expect("write_file: failed to create parent folder.");
+    }
+    fs::write(path, contents)
+}
+
+pub fn read_text_file(file_name: &str) -> Result<String, io::Error> {
     fs::read_to_string(file_name)
 }
 
-pub fn write_file(file_name: &str, contents: &str) -> io::Result<()> {
+pub fn write_text_file(file_name: &str, contents: &str) -> io::Result<()> {
     let path = Path::new(file_name);
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).expect("write_file: failed to create parent folder.");

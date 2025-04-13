@@ -22,6 +22,7 @@ pub struct Tree {
 pub trait TreeTrait {
     fn read_tree(&mut self);
     fn write_tree(&mut self);
+    fn calculate_hash(&mut self);
 }
 
 impl TreeTrait for Tree {
@@ -35,9 +36,11 @@ impl TreeTrait for Tree {
         let hash = self.hash.as_ref().unwrap();
         
         let raw_content = read_object_file(hash);
-        let full_content = serialize::deserialize(&raw_content);
+        let vecu8_content = serialize::deserialize(&raw_content);
+        let full_content = std::str::from_utf8(&vecu8_content).expect("Invalid UTF-8");
+
         assert!(full_content.len() >= 4);
-        assert!(full_content[..4] == "TREE"[..]);
+        assert!(full_content.starts_with("TREE"));
 
         let mut entries = Vec::new();
 
@@ -65,8 +68,11 @@ impl TreeTrait for Tree {
     /// `write_tree`: calculate `self.hash` and write file based on `self.data`
     fn write_tree(&mut self) {
 
-        assert!(self.hash.is_none() == true);
         assert!(self.data.is_none() == false);
+
+        if self.hash.is_none() {
+            self.calculate_hash();
+        }
 
         let entries = self.data.as_ref().unwrap();
         let mut data: String = Default::default();
@@ -81,10 +87,26 @@ impl TreeTrait for Tree {
         }
 
         let full_content = "BLOB".to_string() + &data;
-        let hash = hash::sha1(&full_content);
-        let raw_content = serialize::serialize(&full_content);
+        let raw_content = serialize::serialize(&full_content.as_bytes());
 
-        write_object_file(&hash, &raw_content);
-        self.hash = Some(hash);
+        write_object_file(self.hash.as_ref().unwrap(), &raw_content);
+    }
+
+    /// calculate the hash for `tree.data`
+    fn calculate_hash(&mut self) {
+        assert!(self.data.is_none() == false);
+        let entries = self.data.as_ref().unwrap();
+        let mut data: String = Default::default();
+        for entry in entries {
+            data.push_str(&format!("{}\0{}\0{}\n",
+                        match entry.entry_type {
+                            TreeEntryType::Blob => "BLOB",
+                            TreeEntryType::Tree => "TREE",
+                        },
+                        entry.name,
+                        entry.hash));
+        }
+        
+        self.hash = Some(hash::sha1(&data.as_bytes()));
     }
 }

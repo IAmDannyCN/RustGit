@@ -4,6 +4,6 @@ use hex;
 pub const HASH_LENGTH: usize = 40;
 pub const FOLDER_LENGTH: usize = 2;
 
-pub fn sha1(text: &str) -> String {
+pub fn sha1(text: &[u8]) -> String {
     hex::encode(Sha1::digest(text))
 }

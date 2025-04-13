@@ -2,21 +2,13 @@ use std::process;
 
 use base64::{engine::general_purpose, Engine as _};
 
-pub fn serialize(text: &str) -> String {
-    general_purpose::STANDARD.encode(text)
+pub fn serialize(data: &[u8]) -> String {
+    general_purpose::STANDARD.encode(data)
 }
 
-pub fn deserialize(text: &str) -> String {
+pub fn deserialize(text: &str) -> Vec<u8> {
     match general_purpose::STANDARD.decode(text) {
-        Ok(decoded_bytes) => {
-            match String::from_utf8(decoded_bytes) {
-                Ok(res) => res,
-                Err(e) => {
-                    eprintln!("Deserialize error when converting Vec<u8> to String: {}", e);
-                    process::exit(1)
-                }
-            }
-        }
+        Ok(decoded_bytes) => decoded_bytes,
         Err(e) => {
             eprintln!("Deserialize error when decoding base64: {}", e);
             process::exit(1)

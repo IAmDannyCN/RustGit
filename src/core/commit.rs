@@ -16,6 +16,7 @@ pub struct Commit {
 pub trait CommitTrait {
     fn read_commit(&mut self);
     fn write_commit(&mut self);
+    fn calculate_hash(&mut self);
 }
 
 impl CommitTrait for Commit {
@@ -29,9 +30,11 @@ impl CommitTrait for Commit {
         let hash = self.hash.as_ref().unwrap();
         
         let raw_content = read_object_file(hash);
-        let full_content = serialize::deserialize(&raw_content);
+        let vecu8_content = serialize::deserialize(&raw_content);
+        let full_content = std::str::from_utf8(&vecu8_content).expect("Invalid UTF-8");
+
         assert!(full_content.len() >= 4);
-        assert!(full_content[..4] == "CMIT"[..]);
+        assert!(full_content.starts_with("CMIT"));
 
         let parts: Vec<&str> = full_content[4..].split('\0').collect();
 
@@ -49,8 +52,11 @@ impl CommitTrait for Commit {
     /// `write_commit`: calculate `self.hash` and write file based on `self.data`
     fn write_commit(&mut self) {
 
-        assert!(self.hash.is_none() == true);
         assert!(self.data.is_none() == false);
+
+        if self.hash.is_none() {
+            self.calculate_hash();
+        }
 
         let commit_data = self.data.as_ref().unwrap();
         let mut data: String = Default::default();
@@ -59,10 +65,20 @@ impl CommitTrait for Commit {
             commit_data.message, commit_data.user, commit_data.time, commit_data.tree_hash));
 
         let full_content = "CMIT".to_string() + &data;
-        let hash = hash::sha1(&full_content);
-        let raw_content = serialize::serialize(&full_content);
+        let raw_content = serialize::serialize(&full_content.as_bytes());
 
-        write_object_file(&hash, &raw_content);
-        self.hash = Some(hash);
+        write_object_file(self.hash.as_ref().unwrap(), &raw_content);
+    }
+
+    /// calculate the hash for `commit.data`
+    fn calculate_hash(&mut self) {
+        assert!(self.data.is_none() == false);
+        let commit_data = self.data.as_ref().unwrap();
+        let mut data: String = Default::default();
+
+        data.push_str(&format!("{}\0{}\0{}\0{}", 
+            commit_data.message, commit_data.user, commit_data.time, commit_data.tree_hash));
+        
+        self.hash = Some(hash::sha1(&data.as_bytes()));
     }
 }

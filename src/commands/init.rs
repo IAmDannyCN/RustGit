@@ -14,7 +14,7 @@ fn delete_original_directory(git_directory: &str) {
 }
 
 pub fn init(initial_branch: Option<String>) {
-    let git_directory: String = utils::get_git_directory();
+    let git_directory: String = utils::pwd() + "/.mygit";
 
     delete_original_directory(&git_directory);
 
@@ -39,7 +39,7 @@ pub fn init(initial_branch: Option<String>) {
         &format!("ref: refs/heads/{}", match initial_branch {
             Some(name) => name,
             None => "main".to_string()
-        })
+        }).as_bytes()
     ) {
         eprintln!("Cannot write to {}/HEAD: {}", git_directory, e);
         process::exit(1);

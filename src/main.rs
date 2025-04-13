@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand};
 
 mod commands;
 mod utils;
@@ -24,19 +24,32 @@ struct Cli {
     command: Commands,
 }
 
+#[derive(Args)]
+struct CommonArgs {
+    /// Working directory path
+    #[arg(short = 'p', long, default_value = ".")]
+    path: String,
+}
+
 #[derive(Subcommand)]
 enum Commands {
     /// Initialize a new Git repository
     Init {
-        /// Allow recursive removal when a leading directory name is given.
+        /// Use the specified name for the initial branch in the newly created repository.
         #[arg(short = 'b', long)]
         initial_branch: Option<String>,
+
+        #[clap(flatten)]
+        common: CommonArgs,
     },
 
     /// Add file(s) to the index (staging area)
     Add {
         /// List of files to add
         files: Vec<String>,
+
+        #[clap(flatten)]
+        common: CommonArgs,
     },
 
     /// Remove file(s) from the index
@@ -55,6 +68,9 @@ enum Commands {
 
         /// List of files to remove
         files: Vec<String>,
+
+        #[clap(flatten)]
+        common: CommonArgs,
     },
 
     /// Commit staged changes
@@ -62,6 +78,9 @@ enum Commands {
         /// Commit message
         #[arg(short, long)]
         message: String,
+
+        #[clap(flatten)]
+        common: CommonArgs,
     },
 
     /// Create, list, or delete branches
@@ -72,6 +91,9 @@ enum Commands {
         /// Delete the specified branch
         #[arg(short, long)]
         delete: bool,
+
+        #[clap(flatten)]
+        common: CommonArgs,
     },
 
     /// Switch to another branch
@@ -79,6 +101,9 @@ enum Commands {
         /// Target branch name
         #[arg(short, long)]
         branch: String,
+
+        #[clap(flatten)]
+        common: CommonArgs,
     },
 
     /// Merge the specified branch into the current one
@@ -86,6 +111,9 @@ enum Commands {
         /// Branch to merge from
         #[arg(short, long)]
         branch: String,
+
+        #[clap(flatten)]
+        common: CommonArgs,
     },
 }
 
@@ -94,13 +122,33 @@ fn main() {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Init { initial_branch} => init(initial_branch),
-        Commands::Add { files } => add(files),
-        Commands::Rm { files, recursive, force, cached } =>
-            remove(files, recursive, force, cached),
-        Commands::Commit { message } => commit(message),
-        Commands::Branch { name, delete } => branch(name, delete),
-        Commands::Checkout { branch } => checkout(branch),
-        Commands::Merge { branch } => merge(branch),
+        Commands::Init { initial_branch, common } => {
+            utils::utils::set_pwd(&common.path);
+            init(initial_branch);
+        }
+        Commands::Add { files, common } => {
+            utils::utils::set_pwd(&common.path);
+            add(files);
+        }
+        Commands::Rm { files, recursive, force, cached, common } => {
+            utils::utils::set_pwd(&common.path);
+            remove(files, recursive, force, cached);
+        }
+        Commands::Commit { message, common } => {
+            utils::utils::set_pwd(&common.path);
+            commit(message);
+        }
+        Commands::Branch { name, delete, common } => {
+            utils::utils::set_pwd(&common.path);
+            branch(name, delete);
+        }
+        Commands::Checkout { branch, common } => {
+            utils::utils::set_pwd(&common.path);
+            checkout(branch);
+        }
+        Commands::Merge { branch, common } => {
+            utils::utils::set_pwd(&common.path);
+            merge(branch);
+        }
     }
 }
