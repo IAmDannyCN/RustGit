@@ -44,18 +44,28 @@ pub fn get_git_directory() -> String {
     }
 }
 
+// pub fn is_subpath(parent: &str, child: &str) -> bool {
+//     let parent = match Path::new(parent).canonicalize() {
+//         Ok(p) => p,
+//         Err(_) => return false,
+//     };
+
+//     let child = match Path::new(child).canonicalize() {
+//         Ok(p) => p,
+//         Err(_) => return false,
+//     };
+//     child.starts_with(&parent)
+// }
+
 pub fn is_subpath(parent: &str, child: &str) -> bool {
-    let parent = match Path::new(parent).canonicalize() {
-        Ok(p) => p,
-        Err(_) => return false,
-    };
+    let parent = Path::new(parent).components().collect::<Vec<_>>();
+    let child = Path::new(child).components().collect::<Vec<_>>();
 
-    let child = match Path::new(child).canonicalize() {
-        Ok(p) => p,
-        Err(_) => return false,
-    };
+    if parent.len() > child.len() {
+        return false;
+    }
 
-    child.starts_with(&parent)
+    parent.iter().zip(child.iter()).all(|(a, b)| a == b)
 }
 
 pub fn relative_path(parent: &str, child: &str) -> String {

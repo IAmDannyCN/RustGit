@@ -49,6 +49,7 @@ pub fn add(files: Vec<String>) {
     let repo_path = utils::pwd();
 
     let mut new_entries: HashSet<IndexEntry> = Default::default();
+    let mut base_entries: HashSet<String> = Default::default();
     
     for file in files {
         let file_path = match Path::new(&file).canonicalize() {
@@ -62,7 +63,9 @@ pub fn add(files: Vec<String>) {
             eprintln!("File {} does not belong to repository {}.", file_path, repo_path);
             process::exit(1);
         }
+
         register_files(&file_path, &utils::relative_path(&repo_path, &file_path), &mut new_entries);
+        base_entries.insert(file_path);
     }
 
     // After registration, ALL entry.hash ARE EMPTY in new_entries !!!
@@ -117,10 +120,16 @@ pub fn add(files: Vec<String>) {
         new_entry_paths.insert(entry.path.clone());
     }
 
-    index.retain(|key, old_entry| {
+    index.retain(|_, old_entry| {
         if !new_entry_paths.contains(&old_entry.path) {
-            remove_log.insert(old_entry.path.clone());
-            false
+            for base_entry in &base_entries {
+                let old_entry_full = format!("{}/{}", utils::pwd(), &old_entry.path);
+                if utils::is_subpath(&base_entry, &old_entry_full) {
+                    remove_log.insert(old_entry.path.clone());
+                    return false;
+                }
+            }
+            true
         } else {
             true
         }
