@@ -1,47 +1,10 @@
 use std::collections::HashSet;
 use std::process;
-use std::{fs, path::Path};
+use std::path::Path;
 
 use crate::core::blob::BlobTrait;
 use crate::{core::*, utils::*};
 use crate::core::index::IndexEntry;
-
-fn register_files(path: &str, rel_path: &str, index: &mut HashSet<IndexEntry>) {
-
-    if &path == &utils::get_git_directory() {
-        return ;
-    }
-
-    let path = Path::new(path);
-
-    if let Ok(metadata) = fs::symlink_metadata(path) {
-        if metadata.file_type().is_symlink() {
-            return;
-        } else if metadata.is_file() {
-            index.insert(
-                IndexEntry {
-                path: rel_path.to_string(),
-                hash: String::default(),
-                }
-            );
-        } else if metadata.is_dir() {
-            if let Ok(entries) = fs::read_dir(path) {
-                for entry in entries.flatten() {
-                    let file_name = entry.file_name();
-                    let file_name_str = file_name.to_string_lossy();
-                    let new_abs_path = entry.path();
-                    let new_rel_path = if rel_path.is_empty() {
-                        file_name_str.to_string()
-                    } else {
-                        format!("{}/{}", rel_path, file_name_str)
-                    };
-                    register_files(new_abs_path.to_str().unwrap(), &new_rel_path, index);
-                }
-            }
-        }
-    }
-}
-
 
 pub fn add(files: Vec<String>) {
     
@@ -64,7 +27,7 @@ pub fn add(files: Vec<String>) {
             process::exit(1);
         }
 
-        register_files(&file_path, &utils::relative_path(&repo_path, &file_path), &mut new_entries);
+        index::register_files(&file_path, &utils::relative_path(&repo_path, &file_path), &mut new_entries, &true);
         base_entries.insert(file_path);
     }
 
@@ -78,7 +41,7 @@ pub fn add(files: Vec<String>) {
 
         // entry.hash is empty !!!
 
-        let file_path = format!("{}/{}", utils::pwd(), entry.path);
+        let file_path = format!("{}/{}", repo_path, entry.path);
         let mut blob = blob::get_blob_from_file(&file_path);
         
         let path = entry.path.clone();
@@ -123,7 +86,7 @@ pub fn add(files: Vec<String>) {
     index.retain(|_, old_entry| {
         if !new_entry_paths.contains(&old_entry.path) {
             for base_entry in &base_entries {
-                let old_entry_full = format!("{}/{}", utils::pwd(), &old_entry.path);
+                let old_entry_full = format!("{}/{}", repo_path, &old_entry.path);
                 if utils::is_subpath(&base_entry, &old_entry_full) {
                     remove_log.insert(old_entry.path.clone());
                     return false;

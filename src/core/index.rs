@@ -1,4 +1,4 @@
-use std::{collections::HashMap, process};
+use std::{collections::{HashMap, HashSet}, fs, path::Path, process};
 
 use crate::utils::*;
 
@@ -62,5 +62,45 @@ pub fn write_index(index: &Index) {
     if let Err(e) = storage::write_text_file(&index_path, &raw_content) {
         eprintln!("Failed to write index: {}", e);
         process::exit(1)
+    }
+}
+
+pub fn register_files(path: &str, rel_path: &str, index: &mut HashSet<IndexEntry>, recursive: &bool) {
+
+    if &path == &utils::get_git_directory() {
+        return ;
+    }
+
+    let path = Path::new(path);
+
+    if let Ok(metadata) = fs::symlink_metadata(path) {
+        if metadata.file_type().is_symlink() {
+            return;
+        } else if metadata.is_file() {
+            index.insert(
+                IndexEntry {
+                path: rel_path.to_string(),
+                hash: String::default(),
+                }
+            );
+        } else if metadata.is_dir() {
+            if !recursive {
+                eprintln!("{} is a directory, use --recursive or -r to handle.", path.to_string_lossy());
+                process::exit(1);
+            }
+            if let Ok(entries) = fs::read_dir(path) {
+                for entry in entries.flatten() {
+                    let file_name = entry.file_name();
+                    let file_name_str = file_name.to_string_lossy();
+                    let new_abs_path = entry.path();
+                    let new_rel_path = if rel_path.is_empty() {
+                        file_name_str.to_string()
+                    } else {
+                        format!("{}/{}", rel_path, file_name_str)
+                    };
+                    register_files(new_abs_path.to_str().unwrap(), &new_rel_path, index, recursive);
+                }
+            }
+        }
     }
 }

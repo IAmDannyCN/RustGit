@@ -8,7 +8,7 @@ use commands::{
     add::add,
     branch::branch,
     checkout::checkout,
-    commit::commit,
+    commit::commit_index,
     init::init,
     merge::merge,
     rm::remove,
@@ -58,13 +58,9 @@ enum Commands {
         #[arg(short = 'r', long)]
         recursive: bool,
 
-        /// Override the up-to-date check.
+        /// Force remove the original file in working area.
         #[arg(short = 'f', long)]
         force: bool,
-
-        /// Use this option to unstage and remove paths only from the index. Working tree files, whether modified or not, will be left alone.
-        #[arg(long)]
-        cached: bool,
 
         /// List of files to remove
         files: Vec<String>,
@@ -130,13 +126,13 @@ fn main() {
             utils::utils::set_pwd(&common.path);
             add(files);
         }
-        Commands::Rm { files, recursive, force, cached, common } => {
+        Commands::Rm { files, recursive, force, common } => {
             utils::utils::set_pwd(&common.path);
-            remove(files, recursive, force, cached);
+            remove(files, recursive, force);
         }
         Commands::Commit { message, common } => {
             utils::utils::set_pwd(&common.path);
-            commit(message);
+            commit_index(message);
         }
         Commands::Branch { name, delete, common } => {
             utils::utils::set_pwd(&common.path);

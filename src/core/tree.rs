@@ -86,7 +86,7 @@ impl TreeTrait for Tree {
                         entry.hash));
         }
 
-        let full_content = "BLOB".to_string() + &data;
+        let full_content = "TREE".to_string() + &data;
         let raw_content = serialize::serialize(&full_content.as_bytes());
 
         write_object_file(self.hash.as_ref().unwrap(), &raw_content);

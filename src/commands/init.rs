@@ -34,14 +34,17 @@ pub fn init(initial_branch: Option<String>) {
     create_nonexist_file(&format!("{}/HEAD", git_directory));
     create_nonexist_file(&format!("{}/index", git_directory));
 
+    let branch_name: String = match &initial_branch {
+        Some(name) => name.clone(),
+        None => "main".to_string()
+    };
+
     if let Err(e) = storage::write_file( 
         &format!("{}/HEAD", git_directory), 
-        &format!("ref: refs/heads/{}", match initial_branch {
-            Some(name) => name,
-            None => "main".to_string()
-        }).as_bytes()
+        &format!("ref: refs/heads/{}", branch_name).as_bytes()
     ) {
         eprintln!("Cannot write to {}/HEAD: {}", git_directory, e);
         process::exit(1);
     }
+    create_nonexist_file(&format!("{}/refs/heads/{}", git_directory, branch_name));
 }

@@ -70,3 +70,10 @@ pub fn create_nonexist_file(file_name: &str) {
 
     create_file(&file_name);
 }
+
+pub fn remove_file(file_name: &str) {
+    if let Err(e) = fs::remove_file(file_name) {
+        eprintln!("Failed to remove file {}: {}", file_name, e);
+        process::exit(1);
+    }
+}

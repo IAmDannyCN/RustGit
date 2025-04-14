@@ -42,7 +42,10 @@ pub fn read_object_file(object_name: &str) -> String {
 pub fn write_object_file(object_name: &str, content: &str) {
 
     let file_path = get_object_path(&object_name);
-    // let folder_path = get_object_folder(&object_name);
+    
+    if std::path::Path::new(&file_path).exists() {
+        return ;
+    }
     
     match storage::write_text_file(&file_path, content) {
         Ok(_) => {}

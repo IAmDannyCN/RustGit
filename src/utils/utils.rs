@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
-use std::process;
+use std::{env, process};
 use std::sync::OnceLock;
+
+use chrono::Local;
 
 static PWD: OnceLock<String> = OnceLock::new();
 
@@ -77,5 +79,47 @@ pub fn relative_path(parent: &str, child: &str) -> String {
         Err(_) => {
             panic!("child is not under parent");
         }
+    }
+}
+
+// pub fn get_dir_name(path: &str) -> String {
+//     Path::new(path)
+//         .parent()
+//         .map(|p| p.to_string_lossy().to_string())
+//         .unwrap_or_else(|| "".to_string())
+// }
+
+pub fn split_path_by_first(path: &str) -> (String, String) {
+    match path.find('/') {
+        Some(pos) => {
+            let cur_name = path[..pos].to_string();
+            let after_name = path[pos + 1..].to_string();
+            (cur_name, after_name)
+        }
+        None => (path.to_string(), "".to_string()),
+    }
+}
+
+pub fn split_path_by_last(path: &str) -> (String, String) {
+    match path.rfind('/') {
+        Some(pos) => {
+            let before = path[..pos].to_string();
+            let last = path[pos + 1..].to_string();
+            (before, last)
+        }
+        None => ("".to_string(), path.to_string()),
+    }
+}
+
+pub fn get_time_string() -> String {
+    Local::now().format("%Y%m%d%H%M%S%3f").to_string()
+}
+
+pub fn get_username() -> String {
+    match env::var("USER")
+        .or_else(|_| env::var("USERNAME"))
+    {
+        Ok(user) => user,
+        Err(_) => "unknown".to_string(),
     }
 }

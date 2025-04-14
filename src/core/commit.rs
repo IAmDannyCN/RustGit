@@ -1,4 +1,4 @@
-use crate::utils::{hash, serialize};
+use crate::{commands::commit, utils::{hash, serialize}};
 use super::object::*;
 
 pub struct CommitData {
@@ -6,6 +6,7 @@ pub struct CommitData {
     pub user: String,
     pub time: String,
     pub tree_hash: String,
+    pub parent_commits: Vec<String>,
 }
 
 pub struct Commit {
@@ -43,6 +44,7 @@ impl CommitTrait for Commit {
             user:       parts[1].to_string(),
             time:       parts[2].to_string(),
             tree_hash:  parts[3].to_string(),
+            parent_commits: parts[4].split('&').map(|s| s.to_string()).collect(),
         };
 
         self.data = Some(data);
@@ -59,10 +61,13 @@ impl CommitTrait for Commit {
         }
 
         let commit_data = self.data.as_ref().unwrap();
-        let mut data: String = Default::default();
-
-        data.push_str(&format!("{}\0{}\0{}\0{}", 
-            commit_data.message, commit_data.user, commit_data.time, commit_data.tree_hash));
+        let data: String = format!("{}\0{}\0{}\0{}\0{}", 
+            commit_data.message,
+            commit_data.user,
+            commit_data.time,
+            commit_data.tree_hash,
+            commit_data.parent_commits.join("&")
+        );
 
         let full_content = "CMIT".to_string() + &data;
         let raw_content = serialize::serialize(&full_content.as_bytes());

@@ -64,3 +64,22 @@ pub fn store_remote(remote_name: &str, ref_name: &str, hash: &str) {
         process::exit(1)
     }
 }
+
+pub fn get_current_branch() -> String {
+    let head_path = utils::get_git_directory() + "/HEAD";
+    match storage::read_file(&head_path) {
+        Ok(content) => {
+            let content = std::str::from_utf8(&content).expect("Not valid UTF-8").to_string();
+            if !content.starts_with("ref: refs/heads/") {
+                eprintln!("Broken HEAD file {}", head_path);
+                process::exit(1);
+            } else {
+                content[16..].to_string()
+            }
+        },
+        Err(e) => {
+            eprintln!("Error when reading HEAD {} : {}", head_path, e);
+            process::exit(1)
+        }
+    }
+}
