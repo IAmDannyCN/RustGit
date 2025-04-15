@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::process;
 
 use crate::core::index::IndexEntry;
 use crate::{core::*, utils::*};
@@ -156,7 +157,18 @@ pub fn commit_index(message: String) {
         entries.insert(kv.1);
     }
 
-    let current_branch = &reference::get_current_branch();
+    let current_branch: String;
+
+    match &reference::get_current_branch() {
+        None => {
+            eprintln!("You are in 'detached HEAD' state. Cannot commit.");
+            process::exit(1);
+        }
+        Some(branch_name) => {
+            current_branch = branch_name.to_string();
+        }
+    }
+
     let parent_commits: Vec<String> = [ reference::get_head(&current_branch) ].to_vec();
 
     let new_head_hash = commit(&entries, message, utils::get_time_string(), utils::get_username(), parent_commits);

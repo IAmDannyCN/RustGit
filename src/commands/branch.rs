@@ -6,7 +6,17 @@ pub fn branch(name: Option<Vec<String>>, delete: bool) {
     match (name, delete) {
         (Some(branches), true) => {
             // Deleting branch(es)
-            let current_branch = reference::get_current_branch();
+            let current_branch: String;
+
+            match &reference::get_current_branch() {
+                None => {
+                    eprintln!("You are in 'detached HEAD' state. Cannot delete branch.");
+                    process::exit(1);
+                }
+                Some(branch_name) => {
+                    current_branch = branch_name.to_string();
+                }
+            }
             
             let mut can_delete = true;
 
@@ -36,7 +46,20 @@ pub fn branch(name: Option<Vec<String>>, delete: bool) {
                 process::exit(1);
             }
             let name = branch.get(0).unwrap();
-            reference::create_head(name, &reference::get_head(&reference::get_current_branch()));
+
+            let current_branch: String;
+
+            match &reference::get_current_branch() {
+                None => {
+                    eprintln!("You are in 'detached HEAD' state. Cannot create branch.");
+                    process::exit(1);
+                }
+                Some(branch_name) => {
+                    current_branch = branch_name.to_string();
+                }
+            }
+
+            reference::create_head(name, &reference::get_head(&current_branch));
             println!("Created branch {}.", name);
         }
         (None, _) => {
@@ -44,7 +67,11 @@ pub fn branch(name: Option<Vec<String>>, delete: bool) {
             let heads = reference::get_all_heads();
             let current_branch = reference::get_current_branch();
             for head in heads {
-                println!(" {} {}", if current_branch == head { "*" } else { " " }, head);
+                let is_current_branch = match &current_branch {
+                    None => true,
+                    Some(branch_name) => branch_name == &head,
+                };
+                println!(" {} {}", if is_current_branch { "*" } else { " " }, head);
             }
         }
     }
