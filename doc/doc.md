@@ -44,7 +44,7 @@
 
 - 如果目录中已存在 `.git` 文件，重新生成 `.git` 目录。若未启用 `-q`，则返回：  
   `Reinitialized existing Git repository in <目录名>`
-- 默认分支名称是 `main` 而不是 `master`
+- 默认分支名称是 `master`
 
 ---
 
