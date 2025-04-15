@@ -1,7 +1,8 @@
-use std::process;
+use std::{fs, process};
+use std::os::unix::fs::MetadataExt;
 
 use crate::utils::{hash, serialize, storage};
-use super::object::*;
+use super::{object::*, tree::TreeEntryType};
 
 pub struct Blob {
     pub hash: Option<String>,
@@ -58,14 +59,56 @@ impl BlobTrait for Blob {
 }
 
 pub fn get_blob_from_file(file_path: &str) -> Blob {
+    let meta = fs::symlink_metadata(file_path).unwrap_or_else(|e| {
+        eprintln!("Error when stat file {} : {}", file_path, e);
+        process::exit(1)
+    });
 
-    let blob_data = match storage::read_file(file_path) {
-        Ok(res) => res,
-        Err(e) => {
-            eprintln!("Error when reading blob file {} : {}", file_path, e);
-            process::exit(1)
+    let blob_data = if meta.file_type().is_symlink() {
+        // This is a SymLink
+        match fs::read_link(file_path) {
+            Ok(target_path) => target_path.to_string_lossy().to_string().into_bytes(),
+            Err(e) => {
+                eprintln!("Error when reading symlink {} : {}", file_path, e);
+                process::exit(1)
+            }
+        }
+    } else {
+        // This is an ordinary file
+        match storage::read_file(file_path) {
+            Ok(res) => res,
+            Err(e) => {
+                eprintln!("Error when reading blob file {} : {}", file_path, e);
+                process::exit(1)
+            }
         }
     };
 
-    Blob { hash: Some(hash::sha1(&blob_data)), data: Some(blob_data)}
+    Blob {
+        hash: Some(hash::sha1(&blob_data)),
+        data: Some(blob_data),
+    }
+}
+
+pub fn get_blob_type(blob_path: &str) -> TreeEntryType {
+    let meta = fs::symlink_metadata(blob_path).unwrap_or_else(|e| {
+        eprintln!("Failed to stat {}: {}", blob_path, e);
+        std::process::exit(1);
+    });
+
+    let file_type = meta.file_type();
+
+    if file_type.is_symlink() {
+        TreeEntryType::Bsym
+    } else if file_type.is_file() {
+        let mode = meta.mode();
+        if (mode & 0o111) != 0 {
+            TreeEntryType::Bexe
+        } else {
+            TreeEntryType::Blob
+        }
+    } else {
+        eprintln!("Unsupported file type: {}", blob_path);
+        std::process::exit(1);
+    }
 }

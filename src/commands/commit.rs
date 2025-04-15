@@ -59,15 +59,16 @@ fn add_entry_to_tree(entry: &IndexEntry, trees: &mut HashMap<String, Tree>) {
     create_tree_for_path(&dir_path, "", trees);
 
     if let Some(folder_tree) = trees.get_mut(&dir_path) {
+        let entry_type = blob::get_blob_type(&format!("{}/{}", utils::pwd(), file_path));
         if let Some(vec) = folder_tree.data.as_mut() {
             vec.push(TreeEntry {
-                entry_type: TreeEntryType::Blob,
+                entry_type,
                 name: file_name,
                 hash: entry.hash.clone(),
             });
         } else {
             folder_tree.data = Some(vec![TreeEntry {
-                entry_type: TreeEntryType::Blob,
+                entry_type,
                 name: file_name,
                 hash: entry.hash.clone(),
             }]);
@@ -174,6 +175,8 @@ pub fn commit_index(message: String) {
     let new_head_hash = commit(&entries, message, utils::get_time_string(), utils::get_username(), parent_commits);
 
     reference::store_head(&current_branch, &new_head_hash);
+
+    storage::clear_index();
 
     println!("Committed changes {} to head {}.", new_head_hash, current_branch);
 }

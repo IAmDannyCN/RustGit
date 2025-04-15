@@ -95,8 +95,7 @@ enum Commands {
     /// Switch to another branch
     Checkout {
         /// Target branch name
-        #[arg(short, long)]
-        branch: String,
+        target: String,
 
         #[clap(flatten)]
         common: CommonArgs,
@@ -105,7 +104,6 @@ enum Commands {
     /// Merge the specified branch into the current one
     Merge {
         /// Branch to merge from
-        #[arg(short, long)]
         branch: String,
 
         #[clap(flatten)]
@@ -138,9 +136,9 @@ fn main() {
             utils::utils::set_pwd(&common.path);
             branch(name, delete);
         }
-        Commands::Checkout { branch, common } => {
+        Commands::Checkout { target, common } => {
             utils::utils::set_pwd(&common.path);
-            checkout(branch);
+            checkout(target);
         }
         Commands::Merge { branch, common } => {
             utils::utils::set_pwd(&common.path);

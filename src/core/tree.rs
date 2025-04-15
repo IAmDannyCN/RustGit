@@ -3,11 +3,15 @@ use std::process;
 use crate::utils::{hash, serialize};
 use super::object::*;
 
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub enum TreeEntryType {
     Blob,
     Tree,
+    Bsym,
+    Bexe,
 }
 
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub struct TreeEntry {
     pub entry_type: TreeEntryType,
     pub name: String,
@@ -54,6 +58,8 @@ impl TreeTrait for Tree {
 
             match kind {
                 "BLOB" => entries.push(TreeEntry { entry_type: TreeEntryType::Blob, name, hash }),
+                "BSYM" => entries.push(TreeEntry { entry_type: TreeEntryType::Bsym, name, hash }),
+                "BEXE" => entries.push(TreeEntry { entry_type: TreeEntryType::Bexe, name, hash }),
                 "TREE" => entries.push(TreeEntry { entry_type: TreeEntryType::Tree, name, hash }),
                 _ => {
                     eprintln!("read_tree: invalid entry_type: {}", kind);
@@ -80,6 +86,8 @@ impl TreeTrait for Tree {
             data.push_str(&format!("{}\0{}\0{}\n",
                         match entry.entry_type {
                             TreeEntryType::Blob => "BLOB",
+                            TreeEntryType::Bsym => "BSYM",
+                            TreeEntryType::Bexe => "BEXE",
                             TreeEntryType::Tree => "TREE",
                         },
                         entry.name,
@@ -101,6 +109,8 @@ impl TreeTrait for Tree {
             data.push_str(&format!("{}\0{}\0{}\n",
                         match entry.entry_type {
                             TreeEntryType::Blob => "BLOB",
+                            TreeEntryType::Bsym => "BSYM",
+                            TreeEntryType::Bexe => "BEXE",
                             TreeEntryType::Tree => "TREE",
                         },
                         entry.name,

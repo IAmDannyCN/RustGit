@@ -75,7 +75,12 @@ pub fn register_files(path: &str, rel_path: &str, index: &mut HashSet<IndexEntry
 
     if let Ok(metadata) = fs::symlink_metadata(path) {
         if metadata.file_type().is_symlink() {
-            return;
+            index.insert(
+                IndexEntry {
+                path: rel_path.to_string(),
+                hash: String::default(),
+                }
+            );
         } else if metadata.is_file() {
             index.insert(
                 IndexEntry {

@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use crate::utils::{hash, serialize};
-use super::object::*;
+use super::{index, object::*};
 
 pub struct CommitData {
     pub message: String,
@@ -124,4 +124,26 @@ fn is_prev_commit_search(
 pub fn is_prev_commit(prev_commit_hash: &str, post_commit_hash: &str) -> bool {
     let mut searched_commits = HashSet::new();
     is_prev_commit_search(prev_commit_hash, post_commit_hash, &mut searched_commits)
+}
+
+pub fn check_has_uncommitted() -> bool {
+    // // Check the working area
+    // let (
+    //     _,
+    //     add_log,
+    //     remove_log,
+    //     modify_log
+    // ) = add::add_core(&[".".to_string()].to_vec());
+    // if add_log.len() > 0 || remove_log.len() > 0 || modify_log.len() > 0 {
+    //     println!("working");
+    //     return true;
+    // }
+
+    // Check the staging area
+    let index = index::read_index();
+    if index.len() > 0 {
+        return true;
+    }
+
+    false
 }
