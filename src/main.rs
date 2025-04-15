@@ -82,7 +82,7 @@ enum Commands {
     /// Create, list, or delete branches
     Branch {
         /// Branch name (if omitted, list branches)
-        name: Option<String>,
+        name: Option<Vec<String>>,
 
         /// Delete the specified branch
         #[arg(short, long)]

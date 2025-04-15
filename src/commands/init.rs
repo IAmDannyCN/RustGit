@@ -22,21 +22,21 @@ pub fn init(initial_branch: Option<String>) {
     use storage::create_nonexist_file;
 
     create_nonexist_directory(&git_directory);
-    create_nonexist_directory(&format!("{}/branches", git_directory));
-    create_nonexist_directory(&format!("{}/logs", git_directory));
+    // create_nonexist_directory(&format!("{}/branches", git_directory));
+    // create_nonexist_directory(&format!("{}/logs", git_directory));
     create_nonexist_directory(&format!("{}/objects", git_directory));
-    create_nonexist_directory(&format!("{}/objects/info", git_directory));
-    create_nonexist_directory(&format!("{}/objects/pack", git_directory));
+    // create_nonexist_directory(&format!("{}/objects/info", git_directory));
+    // create_nonexist_directory(&format!("{}/objects/pack", git_directory));
     create_nonexist_directory(&format!("{}/refs", git_directory));
     create_nonexist_directory(&format!("{}/refs/heads", git_directory));
-    create_nonexist_directory(&format!("{}/refs/tags", git_directory));
-    create_nonexist_file(&format!("{}/COMMIT_EDITMSG", git_directory));
+    // create_nonexist_directory(&format!("{}/refs/tags", git_directory));
+    // create_nonexist_file(&format!("{}/COMMIT_EDITMSG", git_directory));
     create_nonexist_file(&format!("{}/HEAD", git_directory));
     create_nonexist_file(&format!("{}/index", git_directory));
 
     let branch_name: String = match &initial_branch {
         Some(name) => name.clone(),
-        None => "main".to_string()
+        None => "master".to_string()
     };
 
     if let Err(e) = storage::write_file( 

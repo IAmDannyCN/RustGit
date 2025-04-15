@@ -1,4 +1,6 @@
-use crate::{commands::commit, utils::{hash, serialize}};
+use std::collections::HashSet;
+
+use crate::utils::{hash, serialize};
 use super::object::*;
 
 pub struct CommitData {
@@ -86,4 +88,40 @@ impl CommitTrait for Commit {
         
         self.hash = Some(hash::sha1(&data.as_bytes()));
     }
+}
+
+fn is_prev_commit_search(
+    prev_commit_hash: &str,
+    post_commit_hash: &str,
+    searched_commits: &mut HashSet<String>
+) -> bool {
+    if prev_commit_hash == post_commit_hash {
+        return true;
+    } else if prev_commit_hash == "" {
+        return true;
+    } else if post_commit_hash == "" {
+        return false;
+    }
+
+    if let Some(_) = searched_commits.get(post_commit_hash) {
+        return false;
+    }
+    searched_commits.insert(post_commit_hash.to_string());
+    
+    // prev != post, and both != ""
+    let mut post_commit = Commit { hash: Some(post_commit_hash.to_string()), data: None };
+    post_commit.read_commit();
+
+    for parent_commit_hash in post_commit.data.unwrap().parent_commits {
+        if is_prev_commit_search(prev_commit_hash, &parent_commit_hash, searched_commits) {
+            return true;
+        }
+    }
+
+    false
+}
+
+pub fn is_prev_commit(prev_commit_hash: &str, post_commit_hash: &str) -> bool {
+    let mut searched_commits = HashSet::new();
+    is_prev_commit_search(prev_commit_hash, post_commit_hash, &mut searched_commits)
 }

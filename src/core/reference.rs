@@ -1,6 +1,6 @@
-use std::process;
+use std::{path::PathBuf, process};
 
-use crate::utils::*;
+use crate::{core::*, utils::*};
 
 pub fn get_head(head_name: &str) -> String {
     let ref_path = utils::get_git_directory() + "/refs/heads/" + head_name;
@@ -82,4 +82,33 @@ pub fn get_current_branch() -> String {
             process::exit(1)
         }
     }
+}
+
+pub fn get_all_heads() -> Vec<String> {
+    let ref_path = PathBuf::from(utils::get_git_directory()).join("refs").join("heads");
+
+    let mut res = Vec::new();
+
+    for entry in std::fs::read_dir(ref_path).unwrap() {
+        let entry = entry.unwrap();
+        let file_name = entry.file_name();
+        res.push(file_name.to_string_lossy().to_string());
+    }
+
+    res
+}
+
+pub fn create_head(head_name: &str, content: &str) {
+    let ref_path = utils::get_git_directory() + "/refs/heads/" + head_name;
+    storage::create_nonexist_file(&ref_path);
+    if let Err(e) = storage::write_text_file(&ref_path, content) {
+        eprintln!("Error writing to {} : {}", ref_path, e);
+        process::exit(1);
+    }
+}
+
+pub fn is_prev_branch(prev_branch: &str, post_branch: &str) -> bool {
+    let prev_commit = get_head(prev_branch);
+    let post_commit = get_head(post_branch);
+    commit::is_prev_commit(&prev_commit, &post_commit)
 }
