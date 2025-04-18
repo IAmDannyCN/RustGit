@@ -3,6 +3,7 @@ use std::collections::HashSet;
 use crate::utils::{hash, serialize};
 use super::{index, object::*};
 
+#[derive(Default)]
 pub struct CommitData {
     pub message: String,
     pub user: String,
@@ -31,6 +32,11 @@ impl CommitTrait for Commit {
         assert!(self.data.is_none() == true);
 
         let hash = self.hash.as_ref().unwrap();
+
+        if hash == "" {
+            self.data = Some(Default::default());
+            return ;
+        }
         
         let raw_content = read_object_file(hash);
         let vecu8_content = serialize::deserialize(&raw_content);

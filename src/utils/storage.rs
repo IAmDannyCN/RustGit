@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 use std::io;
 use std::path::Path;
@@ -10,6 +11,7 @@ use crate::core::blob::Blob;
 use crate::core::blob::BlobTrait;
 use crate::core::commit::Commit;
 use crate::core::commit::CommitTrait;
+use crate::core::index::IndexEntry;
 use crate::core::tree::Tree;
 use crate::core::tree::TreeTrait;
 use crate::core::tree::TreeEntryType;
@@ -136,17 +138,17 @@ fn restore_tree(tree_hash: &str, tree_path: &str) {
     let entries = tree.data.as_ref().unwrap();
     for entry in entries {
         let son_path = format!("{}/{}", tree_path, entry.name);
-        if Path::new(&son_path).exists() {
-            continue;
-        }
+        // if Path::new(&son_path).exists() {
+        //     continue;
+        // }
         
         match &entry.entry_type {
             TreeEntryType::Tree => {
-                create_nonexist_directory(&son_path);
+                create_directory(&son_path);
                 restore_tree(&entry.hash, &son_path);
             }
             TreeEntryType::Blob => {
-                create_nonexist_file(&son_path);
+                create_file(&son_path);
                 let mut blob = Blob { hash: Some(entry.hash.clone()), data: None };
                 blob.read_blob();
                 if let Err(e) = write_file(&son_path, &blob.data.unwrap()) {
@@ -155,7 +157,7 @@ fn restore_tree(tree_hash: &str, tree_path: &str) {
                 }
             }
             TreeEntryType::Bexe => {
-                create_nonexist_file(&son_path);
+                create_file(&son_path);
                 let mut blob = Blob { hash: Some(entry.hash.clone()), data: None };
                 blob.read_blob();
                 if let Err(e) = write_file(&son_path, &blob.data.unwrap()) {
@@ -180,6 +182,37 @@ fn restore_tree(tree_hash: &str, tree_path: &str) {
         }
     }
 
+}
+
+pub fn restore_index_by_tree(tree_hash: &str, tree_path: &str, all_entries: &mut HashMap<String, IndexEntry>) {
+    // tree_path is real path, e.g. /mnt/repo/A/B/C
+    // before calling `restore_tree(tree_hash, tree_path)`, this tree itself has been built.
+
+    let mut tree = Tree { hash: Some(tree_hash.to_owned()), data: None};
+    tree.read_tree();
+
+    let repo_path = utils::pwd();
+
+    let entries = tree.data.as_ref().unwrap();
+    for entry in entries {
+        let son_path = format!("{}/{}", tree_path, entry.name);
+        // if Path::new(&son_path).exists() {
+        //     continue;
+        // }
+        
+        match &entry.entry_type {
+            TreeEntryType::Tree => {
+                restore_index_by_tree(&entry.hash, &son_path, all_entries);
+            }
+            _ => {
+                let this_entry = IndexEntry {
+                    path: utils::get_relative_path(&repo_path, &son_path),
+                    hash: entry.hash.clone()
+                };
+                all_entries.insert(son_path, this_entry);
+            }
+        }
+    }
 }
 
 pub fn restore_working_area(commit_hash: &str) {

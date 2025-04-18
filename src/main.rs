@@ -12,6 +12,7 @@ use commands::{
     init::init,
     merge::merge,
     rm::remove,
+    status::status,
 };
 
 
@@ -109,6 +110,12 @@ enum Commands {
         #[clap(flatten)]
         common: CommonArgs,
     },
+
+    /// Displays paths that have differences between the index file and the current HEAD commit
+    Status {
+        #[clap(flatten)]
+        common: CommonArgs,
+    }
 }
 
 fn main() {
@@ -143,6 +150,10 @@ fn main() {
         Commands::Merge { branch, common } => {
             utils::utils::set_pwd(&common.path);
             merge(branch);
+        }
+        Commands::Status { common } => {
+            utils::utils::set_pwd(&common.path);
+            status();
         }
     }
 }

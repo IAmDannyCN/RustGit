@@ -125,17 +125,17 @@ pub fn add(files: Vec<String>) {
 
     index::write_index(&index);
 
-    print!("add files: ");
+    print!("Add files   : ");
     for file in add_log {
         print!("{} ", file);
     } println!();
 
-    print!("remove files: ");
+    print!("Remove files: ");
     for file in remove_log {
         print!("{} ", file);
     } println!();
 
-    print!("modify files: ");
+    print!("Modify files: ");
     for file in modify_log {
         print!("{} ", file);
     } println!();

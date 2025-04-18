@@ -123,3 +123,16 @@ pub fn get_username() -> String {
         Err(_) => "unknown".to_string(),
     }
 }
+
+pub fn get_relative_path(parent_path: &str, path: &str) -> String {
+    let parent = Path::new(parent_path);
+    let full = Path::new(path);
+
+    match full.strip_prefix(parent) {
+        Ok(rel_path) => rel_path.to_string_lossy().to_string(),
+        Err(_) => {
+            eprintln!("utils::get_relative_path: not a subpath.");
+            process::exit(1);
+        }
+    }
+}
