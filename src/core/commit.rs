@@ -96,6 +96,7 @@ impl CommitTrait for Commit {
     }
 }
 
+/// `is_prev_commit_search`: check if `prev_commit_hash` is a parent of `post_commit_hash`
 fn is_prev_commit_search(
     prev_commit_hash: &str,
     post_commit_hash: &str,

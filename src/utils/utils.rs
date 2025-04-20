@@ -6,6 +6,7 @@ use chrono::Local;
 
 static PWD: OnceLock<String> = OnceLock::new();
 
+/// Sets the PWD environment variable to the absolute path of the given directory.
 pub fn set_pwd(path: &str) {
     let abs_path = match Path::new(path).canonicalize() {
         Ok(p) => p.to_string_lossy().into_owned(),
@@ -21,6 +22,7 @@ pub fn set_pwd(path: &str) {
     }
 }
 
+/// Returns the current working directory (PWD) as a String.
 pub fn pwd() -> String {
     match PWD.get() {
         Some(res) => res.clone(),
@@ -31,6 +33,7 @@ pub fn pwd() -> String {
     }
 }
 
+/// Returns the absolute path of the current working directory.
 pub fn get_git_directory() -> String {
     let mut path = PathBuf::from(pwd());
 
@@ -59,6 +62,7 @@ pub fn get_git_directory() -> String {
 //     child.starts_with(&parent)
 // }
 
+/// Checks if the child path is a subpath of the parent path.
 pub fn is_subpath(parent: &str, child: &str) -> bool {
     let parent = Path::new(parent).components().collect::<Vec<_>>();
     let child = Path::new(child).components().collect::<Vec<_>>();
@@ -70,6 +74,7 @@ pub fn is_subpath(parent: &str, child: &str) -> bool {
     parent.iter().zip(child.iter()).all(|(a, b)| a == b)
 }
 
+/// Returns the relative path from the parent to the child path.
 pub fn relative_path(parent: &str, child: &str) -> String {
     let parent = Path::new(parent);
     let child = Path::new(child);
@@ -124,6 +129,7 @@ pub fn get_username() -> String {
     }
 }
 
+/// Returns the relative path from the parent path to the full path.
 pub fn get_relative_path(parent_path: &str, path: &str) -> String {
     let parent = Path::new(parent_path);
     let full = Path::new(path);

@@ -13,6 +13,7 @@ use commands::{
     merge::merge,
     rm::remove,
     status::status,
+    log::log,
 };
 
 
@@ -115,6 +116,12 @@ enum Commands {
     Status {
         #[clap(flatten)]
         common: CommonArgs,
+    },
+
+    /// Displays the log of commits
+    log {
+        #[clap(flatten)]
+        common: CommonArgs,
     }
 }
 
@@ -154,6 +161,10 @@ fn main() {
         Commands::Status { common } => {
             utils::utils::set_pwd(&common.path);
             status();
+        }
+        Commands::log { common } => {
+            utils::utils::set_pwd(&common.path);
+            log();
         }
     }
 }

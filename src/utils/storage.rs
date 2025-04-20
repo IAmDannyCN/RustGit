@@ -18,10 +18,12 @@ use crate::core::tree::TreeEntryType;
 
 use super::utils;
 
+/// Reads the contents of a file into a byte vector.
 pub fn read_file(file_name: &str) -> Result<Vec<u8>, io::Error> {
     fs::read(file_name)
 }
 
+/// Writes the contents of a byte vector to a file.
 pub fn write_file(file_name: &str, contents: &[u8]) -> io::Result<()> {
     let path = Path::new(file_name);
     if let Some(parent) = path.parent() {
@@ -30,10 +32,12 @@ pub fn write_file(file_name: &str, contents: &[u8]) -> io::Result<()> {
     fs::write(path, contents)
 }
 
+/// Reads the contents of a text file into a string.
 pub fn read_text_file(file_name: &str) -> Result<String, io::Error> {
     fs::read_to_string(file_name)
 }
 
+/// Writes the contents of a string to a text file.
 pub fn write_text_file(file_name: &str, contents: &str) -> io::Result<()> {
     let path = Path::new(file_name);
     if let Some(parent) = path.parent() {
@@ -42,6 +46,7 @@ pub fn write_text_file(file_name: &str, contents: &str) -> io::Result<()> {
     fs::write(path, contents)
 }
 
+/// Creates a directory and all its parent directories if they do not exist.
 pub fn create_directory(directory_name: &str) {
     if let Err(e) = fs::create_dir_all(directory_name) {
         eprintln!("Failed to create directory '{}': {}.", directory_name, e);
@@ -49,6 +54,7 @@ pub fn create_directory(directory_name: &str) {
     }
 }
 
+/// Creates a file. 
 pub fn create_file(file_name: &str) {
     if let Err(e) = fs::File::create(file_name) {
         eprintln!("Failed to create file '{}': {}.", file_name, e);
@@ -56,6 +62,7 @@ pub fn create_file(file_name: &str) {
     }
 }
 
+/// Delete a target file.
 pub fn remove_file(file_name: &str) {
     if let Err(e) = fs::remove_file(file_name) {
         eprintln!("Failed to remove file '{}': {}.", file_name, e);
@@ -127,6 +134,7 @@ pub fn clear_index() {
     }
 }
 
+/// Restores the working area from a tree hash.
 fn restore_tree(tree_hash: &str, tree_path: &str) {
 
     // tree_path is real path, e.g. /mnt/repo/A/B/C
@@ -184,6 +192,7 @@ fn restore_tree(tree_hash: &str, tree_path: &str) {
 
 }
 
+/// Restores the working area from a tree hash and updates the index entries.
 pub fn restore_index_by_tree(tree_hash: &str, tree_path: &str, all_entries: &mut HashMap<String, IndexEntry>) {
     // tree_path is real path, e.g. /mnt/repo/A/B/C
     // before calling `restore_tree(tree_hash, tree_path)`, this tree itself has been built.
@@ -215,6 +224,8 @@ pub fn restore_index_by_tree(tree_hash: &str, tree_path: &str, all_entries: &mut
     }
 }
 
+
+/// Restores the working area from a commit hash.
 pub fn restore_working_area(commit_hash: &str) {
 
     if commit_hash == "" {

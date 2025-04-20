@@ -2,6 +2,7 @@ use std::{io, path::PathBuf, process};
 
 use crate::{core::*, utils::*};
 
+/// This module handles the references in the git repository.
 pub fn get_head(head_name: &str) -> String {
     let ref_path = utils::get_git_directory() + "/refs/heads/" + head_name;
     match storage::read_file(&ref_path) {
@@ -15,6 +16,7 @@ pub fn get_head(head_name: &str) -> String {
     }
 }
 
+/// This function tries to get the head of a branch.
 pub fn try_get_head(head_name: &str) -> Result<String, io::Error> {
     let ref_path = utils::get_git_directory() + "/refs/heads/" + head_name;
     match storage::read_file(&ref_path) {
