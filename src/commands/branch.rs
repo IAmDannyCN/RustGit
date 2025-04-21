@@ -68,7 +68,7 @@ pub fn branch(name: Option<Vec<String>>, delete: bool) {
             let current_branch = reference::get_current_branch();
             for head in heads {
                 let is_current_branch = match &current_branch {
-                    None => true,
+                    None => false,
                     Some(branch_name) => branch_name == &head,
                 };
                 println!(" {} {}", if is_current_branch { "*" } else { " " }, head);

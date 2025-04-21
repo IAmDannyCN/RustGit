@@ -119,7 +119,7 @@ enum Commands {
     },
 
     /// Displays the log of commits
-    log {
+    Log {
         #[clap(flatten)]
         common: CommonArgs,
     }
@@ -162,7 +162,7 @@ fn main() {
             utils::utils::set_pwd(&common.path);
             status();
         }
-        Commands::log { common } => {
+        Commands::Log { common } => {
             utils::utils::set_pwd(&common.path);
             log();
         }

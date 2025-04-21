@@ -2,12 +2,12 @@
 // use std::{collections::HashSet, process};
 
 use std::collections::{HashSet, VecDeque};
-use crate::{core::*, utils::*};
+use crate::core::*;
 use crate::core::commit::{Commit, CommitTrait};
 use crate::core::commit::CommitData;
 
 pub fn log() {
-    /// get the current branch name
+    // get the current branch name
     let current_branch = match reference::get_current_branch() {
         Some(branch) => branch,
         None => {
@@ -16,13 +16,13 @@ pub fn log() {
         }
     };
 
-    /// get the commit history for the current branch
+    // get the commit history for the current branch
     let initial_commit_hash = reference::get_head(&current_branch);
     
     println!("Commit history for branch '{}':", current_branch);
     println!("--------------------------------");
 
-    /// get the commit history for the current branch
+    // get the commit history for the current branch
     let mut visited = HashSet::new();
     let mut queue = VecDeque::new();
     queue.push_back(initial_commit_hash.clone());
@@ -43,7 +43,7 @@ pub fn log() {
         
         print_commit(&commit.hash.unwrap(), &commit_data);
         
-        /// handle merge commits
+        // handle merge commits
         for parent in commit_data.parent_commits {
             if !visited.contains(&parent) {
                 visited.insert(parent.clone());
@@ -56,7 +56,7 @@ pub fn log() {
 fn print_commit(hash: &str, commit_data: &CommitData) {
     println!("commit {}", hash);
     
-    /// display the parent commits
+    // display the parent commits
     if commit_data.parent_commits.len() > 1 {
         print!("Merge:");
         for parent in &commit_data.parent_commits {
