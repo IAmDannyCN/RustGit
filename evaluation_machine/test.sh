@@ -1,29 +1,31 @@
 #!/bin/bash
 
+clear
+echo -e "compiling test files...\n"
 g++ code/pre_test.cpp -o pre_test
-g++ code/test1.cpp -o test1
-g++ code/test2.cpp -o test2
-g++ code/test3.cpp -o test3
-g++ code/test4.cpp -o test4
+for ((i=1; i<=4; i++)); do
+    g++ code/test$i.cpp -o test$i
+    echo -e "compiled test $i\n"
+done
+echo -e "starting tests, enter to continue...\n"
+read -r
+clear
+
+for ((i=1; i<=4; i++)); do
+    echo -e "\n\n\nRunning pre_test..."
+    ./pre_test
+    echo -e "Running test $i...\n"
+    ./test$i
+    echo -e "enter to continue...\n"
+    read -r
+    rm -rf test$i
+    clear
+done
 
 echo -e "\n\n\nRunning pre_test..."
 ./pre_test
-echo -e "Running test1...\n"
-./test1
-echo -e "\n\n\nRunning pre_test..."
-./pre_test
-echo -e "Running test2...\n"
-./test2
-echo -e "\n\n\nRunning pre_test..."
-./pre_test
-echo -e "Running test3...\n"
-./test3
-echo -e "\n\n\nRunning pre_test..."
-./pre_test
-echo -e "Running test4...\n"
-./test4
-
-echo -e "\n\n\nRunning pre_test..."
-./pre_test
-rm -rf pre_test test1 test2 test3 test4
+rm -rf pre_test
 echo -e "\n\nAll tests completed."
+echo -e "enter to continue...\n"
+read -r
+clear
