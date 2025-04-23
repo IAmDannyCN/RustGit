@@ -103,31 +103,31 @@ pub fn get_current_branch() -> Option<String> {
     }
 }
 
-// pub fn get_current_commit() -> String {
-//     let head_path = utils::get_git_directory() + "/HEAD";
-//     match storage::read_file(&head_path) {
-//         Ok(content) => {
-//             let content = std::str::from_utf8(&content).expect("Not valid UTF-8").to_string();
-//             if content.starts_with("ref: refs/heads/") {
-//                 return get_head(&content[16..].to_string());
-//             }
-//             // checks if content is a CMIT_hash
-//             match object::get_object_type(&content) {
-//                 object::ObjectType::Commit => {
-//                     return content;
-//                 }
-//                 _ => {
-//                     eprintln!(".git/HEAD: {} does not refer to a commit.", content);
-//                     process::exit(1);
-//                 }
-//             }
-//         },
-//         Err(e) => {
-//             eprintln!("Error when reading HEAD {} : {}", head_path, e);
-//             process::exit(1);
-//         }
-//     }
-// }
+pub fn get_current_commit() -> String {
+    let head_path = utils::get_git_directory() + "/HEAD";
+    match storage::read_file(&head_path) {
+        Ok(content) => {
+            let content = std::str::from_utf8(&content).expect("Not valid UTF-8").to_string();
+            if content.starts_with("ref: refs/heads/") {
+                return get_head(&content[16..].to_string());
+            }
+            // checks if content is a CMIT_hash
+            match object::get_object_type(&content) {
+                object::ObjectType::Commit => {
+                    return content;
+                }
+                _ => {
+                    eprintln!(".git/HEAD: {} does not refer to a commit.", content);
+                    process::exit(1);
+                }
+            }
+        },
+        Err(e) => {
+            eprintln!("Error when reading HEAD {} : {}", head_path, e);
+            process::exit(1);
+        }
+    }
+}
 
 pub fn store_current_branch_ref(ref_name: &str) {
     let head_path = utils::get_git_directory() + "/HEAD";

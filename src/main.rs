@@ -99,6 +99,10 @@ enum Commands {
         /// Target branch name
         target: String,
 
+        /// Force checkout even there are uncommited changes.
+        #[arg(short = 'f', long, default_value = "false")]
+        force: bool,
+
         #[clap(flatten)]
         common: CommonArgs,
     },
@@ -107,6 +111,10 @@ enum Commands {
     Merge {
         /// Branch to merge from
         branch: String,
+
+        /// Force merge even there are uncommited changes.
+        #[arg(short = 'f', long, default_value = "false")]
+        force: bool,
 
         #[clap(flatten)]
         common: CommonArgs,
@@ -150,13 +158,13 @@ fn main() {
             utils::utils::set_pwd(&common.path);
             branch(name, delete);
         }
-        Commands::Checkout { target, common } => {
+        Commands::Checkout { target, force, common } => {
             utils::utils::set_pwd(&common.path);
-            checkout(target);
+            checkout(target, force);
         }
-        Commands::Merge { branch, common } => {
+        Commands::Merge { branch, force, common } => {
             utils::utils::set_pwd(&common.path);
-            merge(branch);
+            merge(branch, force);
         }
         Commands::Status { common } => {
             utils::utils::set_pwd(&common.path);

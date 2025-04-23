@@ -48,9 +48,9 @@ fn register_blob_by_branch(branch_name: &str, blob_table: &mut HashMap<String, t
     }
 }
 
-pub fn merge(merge_branch: String) {
+pub fn merge(merge_branch: String, force: bool) {
 
-    if commit::check_has_uncommitted() {
+    if !force && commit::check_has_uncommitted() {
         eprintln!("Detected uncommited files. Cannot merge.");
         process::exit(1);
     }

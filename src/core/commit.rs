@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
-use crate::utils::{hash, serialize};
-use super::{index, object::*};
+use crate::{commands::{add, status}, utils::{hash, serialize}};
+use super::{index::{self, IndexEntry}, object::*, reference};
 
 #[derive(Default)]
 pub struct CommitData {
@@ -134,17 +134,6 @@ pub fn is_prev_commit(prev_commit_hash: &str, post_commit_hash: &str) -> bool {
 }
 
 pub fn check_has_uncommitted() -> bool {
-    // // Check the working area
-    // let (
-    //     _,
-    //     add_log,
-    //     remove_log,
-    //     modify_log
-    // ) = add::add_core(&[".".to_string()].to_vec());
-    // if add_log.len() > 0 || remove_log.len() > 0 || modify_log.len() > 0 {
-    //     println!("working");
-    //     return true;
-    // }
 
     // Check the staging area
     let index = index::read_index();
@@ -152,5 +141,20 @@ pub fn check_has_uncommitted() -> bool {
         return true;
     }
 
-    false
+    // Check the working area
+    let (index, _, _, _) = add::add_core(&[".".to_string()].to_vec());
+    let mut entries: HashSet<IndexEntry> = Default::default();
+    for kv in &index {
+        entries.insert(kv.1.clone());
+    }
+
+    let (add_log,
+        remove_log,
+        modify_log) =
+        status::diff_index_entries_to_commit(&entries, &reference::get_current_commit());
+    if add_log.len() != 0 || remove_log.len() != 0 || modify_log.len() != 0 {
+        true
+    } else {
+        false
+    }
 }
