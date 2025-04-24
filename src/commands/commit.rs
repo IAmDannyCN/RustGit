@@ -48,7 +48,11 @@ fn create_tree_for_path(path: &str, father_path: &str, trees: &mut HashMap<Strin
     }
 }
 
-fn add_entry_to_tree(entry: &IndexEntry, trees: &mut HashMap<String, Tree>) {
+fn add_entry_to_tree(
+    entry: &IndexEntry,
+    trees: &mut HashMap<String, Tree>,
+    tree_table: Option<&HashMap<String, TreeEntry>>
+) {
     let file_path = entry.path.clone();
     let (dir_path, file_name) = utils::split_path_by_last(&file_path);
     // e.g. A/B/C/D/E/1.txt
@@ -59,7 +63,15 @@ fn add_entry_to_tree(entry: &IndexEntry, trees: &mut HashMap<String, Tree>) {
     create_tree_for_path(&dir_path, "", trees);
 
     if let Some(folder_tree) = trees.get_mut(&dir_path) {
-        let entry_type = blob::get_blob_type(&format!("{}/{}", utils::pwd(), file_path));
+        let blob_path = format!("{}/{}", utils::pwd(), file_path);
+        let entry_type = match tree_table {
+            None => {
+                blob::get_blob_type(&blob_path)
+            }
+            Some(tree_table) => {
+                tree_table.get(&blob_path).unwrap().entry_type.clone()
+            }
+        };
         if let Some(vec) = folder_tree.data.as_mut() {
             vec.push(TreeEntry {
                 entry_type,
@@ -137,7 +149,31 @@ pub fn commit(  entries: &HashSet<IndexEntry>,
     trees.insert("".to_string(), Tree { hash: None, data: Some(Default::default())});
 
     for entry in entries {
-        add_entry_to_tree(entry, &mut trees);
+        add_entry_to_tree(entry, &mut trees, None);
+    }
+
+    let tree_hash = hash_then_write_tree("", &mut trees);
+
+    let commit_data = CommitData { message, user, time, tree_hash, parent_commits };
+    let mut commit = Commit { hash: None, data: Some(commit_data) };
+
+    commit.write_commit();
+
+    commit.hash.unwrap()
+}
+
+pub fn commit_merge( 
+    entries: &HashSet<IndexEntry>,
+    message: String, time: String,
+    user: String,
+    parent_commits: Vec<String>,
+    new_blob_table: HashMap<String, TreeEntry>
+) -> String {
+    let mut trees: HashMap<String, Tree> = Default::default();
+    trees.insert("".to_string(), Tree { hash: None, data: Some(Default::default())});
+
+    for entry in entries {
+        add_entry_to_tree(entry, &mut trees, Some(&new_blob_table));
     }
 
     let tree_hash = hash_then_write_tree("", &mut trees);
