@@ -115,7 +115,7 @@ pub fn merge(merge_branch: String, force: bool) {
 
     match &reference::get_current_branch() {
         None => {
-            eprintln!("You are in 'detached HEAD' state. Cannot commit.");
+            eprintln!("You are in 'detached HEAD' state. Cannot merge.");
             process::exit(1);
         }
         Some(branch_name) => {

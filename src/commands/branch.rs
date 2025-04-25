@@ -2,7 +2,7 @@ use std::process;
 
 use crate::{core::reference, utils::{storage, utils}};
 
-pub fn branch(name: Option<Vec<String>>, delete: bool) {
+pub fn branch(name: Option<Vec<String>>, delete: bool, verbose: bool) {
     match (name, delete) {
         (Some(branches), true) => {
             // Deleting branch(es)
@@ -38,6 +38,13 @@ pub fn branch(name: Option<Vec<String>>, delete: bool) {
             for branch in &branches {
                 storage::remove_file(&format!("{}/refs/heads/{}", utils::get_git_directory(), branch));
             }
+
+            if verbose {
+                for branch in &branches {
+                    eprintln!("Removed branch `{}`.", branch);
+                }
+            }
+
         }
         (Some(branch), false) => {
             // Creating branch
@@ -60,7 +67,10 @@ pub fn branch(name: Option<Vec<String>>, delete: bool) {
             }
 
             reference::create_head(name, &reference::get_head(&current_branch));
-            println!("Created branch {}.", name);
+            
+            if verbose {
+                eprintln!("Created branch {}.", name);
+            }
         }
         (None, _) => {
             // Listing branches
@@ -71,7 +81,7 @@ pub fn branch(name: Option<Vec<String>>, delete: bool) {
                     None => false,
                     Some(branch_name) => branch_name == &head,
                 };
-                println!(" {} {}", if is_current_branch { "*" } else { " " }, head);
+                eprintln!(" {} {}\x1b[0m", if is_current_branch { "\x1b[32m*" } else { " " }, head);
             }
         }
     }

@@ -2,6 +2,7 @@
 // use std::{collections::HashSet, process};
 
 use std::collections::{HashSet, VecDeque};
+use std::process;
 use crate::core::*;
 use crate::core::commit::{Commit, CommitTrait};
 use crate::core::commit::CommitData;
@@ -11,16 +12,16 @@ pub fn log() {
     let current_branch = match reference::get_current_branch() {
         Some(branch) => branch,
         None => {
-            println!("Not on any branch (detached HEAD state)");
-            return;
+            eprintln!("Not on any branch (detached HEAD state)");
+            process::exit(1);
         }
     };
 
     // get the commit history for the current branch
     let initial_commit_hash = reference::get_head(&current_branch);
     
-    println!("Commit history for branch '{}':", current_branch);
-    println!("--------------------------------");
+    eprintln!("Commit history for branch '{}':", current_branch);
+    eprintln!("--------------------------------");
 
     // get the commit history for the current branch
     let mut visited = HashSet::new();
@@ -54,23 +55,23 @@ pub fn log() {
 }
 
 fn print_commit(hash: &str, commit_data: &CommitData) {
-    println!("commit {}", hash);
+    eprintln!("commit {}", hash);
     
     // display the parent commits
     if commit_data.parent_commits.len() > 1 {
-        print!("Merge:");
+        eprint!("Merge:");
         for parent in &commit_data.parent_commits {
             print!(" {}", &parent[..7]);
         }
-        println!();
+        eprintln!();
     }
     
-    println!("Author: {}", commit_data.user);
-    println!("Date:   {}", commit_data.time);
-    println!();
-    println!("    {}", commit_data.message);
-    println!();
-    println!("--------------------------------");
+    eprintln!("Author: {}", commit_data.user);
+    eprintln!("Date:   {}", commit_data.time);
+    eprintln!();
+    eprintln!("    {}", commit_data.message);
+    eprintln!();
+    eprintln!("--------------------------------");
 }
 
 // fn is_prev_commit_search(

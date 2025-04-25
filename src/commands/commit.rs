@@ -186,7 +186,7 @@ pub fn commit_merge(
     commit.hash.unwrap()
 }
 
-pub fn commit_index(message: String) {
+pub fn commit_index(message: String, verbose: bool) {
     
     let index = index::read_index();
     let mut entries: HashSet<IndexEntry> = Default::default();
@@ -214,5 +214,9 @@ pub fn commit_index(message: String) {
 
     storage::clear_index();
 
-    println!("Committed changes {} to head {}.", new_head_hash, current_branch);
+    if !verbose {
+        eprintln!("{}", new_head_hash);
+    } else {
+        eprintln!("Committed changes {} to head {}.", new_head_hash, current_branch);
+    }
 }

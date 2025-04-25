@@ -6,7 +6,7 @@ use crate::core::index::IndexEntry;
 use crate::core::commit::{Commit, CommitTrait};
 
 pub fn diff_index_entries_to_commit(entries: &HashSet<IndexEntry>, commit_hash: &str) ->
-    (HashSet<String>, HashSet<String>, HashSet<String>)
+    (HashSet<IndexEntry>, HashSet<IndexEntry>, HashSet<(IndexEntry, IndexEntry)>)
 {
 
     // let current_branch = reference::get_current_branch()?.to_string();
@@ -30,9 +30,9 @@ pub fn diff_index_entries_to_commit(entries: &HashSet<IndexEntry>, commit_hash: 
     //     println!("{} : {}", entry.hash, entry.path);
     // }
 
-    let mut add_log: HashSet<String> = Default::default();
-    let mut remove_log: HashSet<String> = Default::default();
-    let mut modify_log: HashSet<String> = Default::default();
+    let mut add_log: HashSet<IndexEntry> = Default::default();
+    let mut remove_log: HashSet<IndexEntry> = Default::default();
+    let mut modify_log: HashSet<(IndexEntry, IndexEntry)> = Default::default();
 
     let repo_path = utils::pwd();
 
@@ -43,11 +43,11 @@ pub fn diff_index_entries_to_commit(entries: &HashSet<IndexEntry>, commit_hash: 
         match commit_entries.get(&abs_path) {
             Some(commit_entry) => {
                 if commit_entry.hash != entry.hash {
-                    modify_log.insert(path.clone());
+                    modify_log.insert((commit_entry.clone(), entry.clone()));
                 }
             }
             None => {
-                add_log.insert(path.clone());
+                add_log.insert(entry.clone());
             }
         }
     }
@@ -57,8 +57,13 @@ pub fn diff_index_entries_to_commit(entries: &HashSet<IndexEntry>, commit_hash: 
         index_entry_paths.insert(entry.path.clone());
     }
     for commit_entry_kv in &commit_entries {
-        if let None = index_entry_paths.get(&commit_entry_kv.1.path) {
-            remove_log.insert(utils::get_relative_path(&repo_path, commit_entry_kv.0));
+        let commit_entry = commit_entry_kv.1;
+        if let None = index_entry_paths.get(&commit_entry.path) {
+            let log = IndexEntry {
+                path: utils::get_relative_path(&repo_path, commit_entry_kv.0),
+                hash: commit_entry.hash.clone()
+            };
+            remove_log.insert(log);
         }
     }
 
@@ -86,20 +91,23 @@ pub fn status() {
     //     }
     //     process::exit(0);
     // };
-    
-    print!("Add files   : ");
-    for file in add_log {
-        print!("{} ", file);
-    } println!();
 
-    print!("Remove files: ");
-    for file in remove_log {
-        print!("{} ", file);
-    } println!();
-
-    print!("Modify files: ");
-    for file in modify_log {
-        print!("{} ", file);
-    } println!();
+    eprintln!(
+        "Added {} file(s), Removed {} file(s), Modified {} file(s).", 
+        add_log.len(), remove_log.len(), modify_log.len()
+    );
+    if !(add_log.len() == 0 && remove_log.len() == 0 && modify_log.len() == 0) {
+        eprintln!();
+        for entry in &add_log {
+            eprintln!("    \x1b[32mAdd:\x1b[0m    {} ({})", entry.path, entry.hash);
+        }
+        for entry in &remove_log {
+            eprintln!("    \x1b[31mRemove:\x1b[0m {} ({})", entry.path, entry.hash);
+        }
+        for entry in &modify_log {
+            eprintln!("    \x1b[33mModify:\x1b[0m {} ({} -> {})", entry.0.path, entry.0.hash, entry.1.hash);
+        }
+        eprintln!();
+    }
 
 }

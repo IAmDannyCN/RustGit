@@ -31,6 +31,10 @@ struct CommonArgs {
     /// Working directory path
     #[arg(short = 'p', long, default_value = ".")]
     path: String,
+
+    /// Print verbose information
+    #[arg(short = 'v', long, default_value = "false")]
+    verbose: bool,
 }
 
 #[derive(Subcommand)]
@@ -57,12 +61,12 @@ enum Commands {
     /// Remove file(s) from the index
     Rm {
         /// Allow recursive removal when a leading directory name is given.
-        #[arg(short = 'r', long)]
+        #[arg(short = 'r', long, default_value = "false")]
         recursive: bool,
 
-        /// Force remove the original file in working area.
-        #[arg(short = 'f', long)]
-        force: bool,
+        /// Only remove cached files (in staging area).
+        #[arg(long, default_value = "false")]
+        cached: bool,
 
         /// List of files to remove
         files: Vec<String>,
@@ -87,7 +91,7 @@ enum Commands {
         name: Option<Vec<String>>,
 
         /// Delete the specified branch
-        #[arg(short, long)]
+        #[arg(short = 'd', long, default_value = "false")]
         delete: bool,
 
         #[clap(flatten)]
@@ -102,6 +106,10 @@ enum Commands {
         /// Force checkout even there are uncommited changes.
         #[arg(short = 'f', long, default_value = "false")]
         force: bool,
+
+        /// Create a new branch and checkout
+        #[arg(short = 'b', long, default_value = "false")]
+        branch: bool,
 
         #[clap(flatten)]
         common: CommonArgs,
@@ -144,23 +152,23 @@ fn main() {
         }
         Commands::Add { files, common } => {
             utils::utils::set_pwd(&common.path);
-            add(files);
+            add(files, common.verbose);
         }
-        Commands::Rm { files, recursive, force, common } => {
+        Commands::Rm { files, recursive, cached, common } => {
             utils::utils::set_pwd(&common.path);
-            remove(files, recursive, force);
+            remove(files, recursive, cached, common.verbose);
         }
         Commands::Commit { message, common } => {
             utils::utils::set_pwd(&common.path);
-            commit_index(message);
+            commit_index(message, common.verbose);
         }
         Commands::Branch { name, delete, common } => {
             utils::utils::set_pwd(&common.path);
-            branch(name, delete);
+            branch(name, delete, common.verbose);
         }
-        Commands::Checkout { target, force, common } => {
+        Commands::Checkout { target, force, branch, common } => {
             utils::utils::set_pwd(&common.path);
-            checkout(target, force);
+            checkout(target, force, branch, common.verbose);
         }
         Commands::Merge { branch, force, common } => {
             utils::utils::set_pwd(&common.path);

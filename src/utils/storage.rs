@@ -70,6 +70,55 @@ pub fn remove_file(file_name: &str) {
     }
 }
 
+/// Delete a target file/directory, when path == utils::pwd(), only remove its contents
+pub fn remove_path(path: &str, recursive: bool) {
+    let p = Path::new(path);
+
+    if !p.exists() {
+        eprintln!("Error: Path '{}' does not exist.", path);
+        return;
+    }
+
+    if p.is_file() {
+        if let Err(e) = fs::remove_file(p) {
+            eprintln!("Error removing file '{}': {}", path, e);
+        }
+    } else if p.is_dir() {
+        if recursive {
+            if path == utils::pwd() {
+                match fs::read_dir(p) {
+                    Ok(entries) => {
+                        for entry in entries {
+                            if let Ok(entry) = entry {
+                                let sub_path = entry.path();
+                                let result = if sub_path.is_dir() {
+                                    fs::remove_dir_all(&sub_path)
+                                } else {
+                                    fs::remove_file(&sub_path)
+                                };
+                                if let Err(e) = result {
+                                    eprintln!("Error removing '{}': {}", sub_path.display(), e);
+                                }
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Error reading directory '{}': {}", path, e);
+                    }
+                }
+            } else {
+                if let Err(e) = fs::remove_dir_all(p) {
+                    eprintln!("Error recursively removing directory '{}': {}", path, e);
+                }
+            }
+        } else {
+            eprintln!("Error: '{}' is a directory. Set recursive = true to remove directories.", path);
+        }
+    } else {
+        eprintln!("Error: '{}' is neither a file nor a directory.", path);
+    }
+}
+
 pub fn create_nonexist_directory(directory_name: &str) {
     match fs::exists(&directory_name) {
         Ok(res) => if res == true {
