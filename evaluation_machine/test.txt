@@ -1,1 +1,0 @@
-../test/git init -p ./test_area/

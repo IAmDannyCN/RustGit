@@ -1,43 +1,36 @@
-use std::fs::File;
-use std::io::{self, Read};
+use std::io::{self, Write};
 use std::process::Command;
 
-mod test;//执行的测试样例\
-use test::excute;
+mod test;//执行的测试样例
+use test::test;
 
 
 fn main() -> io::Result<()> {
-    // 打开当前目录下的test.txt 文件
-    let mut file = File::open("./test.txt")?;
-
-    // 创建一个字符串来存储文件内容
-    let mut contents = String::new();
-
-    // 读取文件内容到字符串
-    file.read_to_string(&mut contents)?;
-
-    // 打印文件内容
-    excute(&contents);
+    test(); // 执行测试样例
     Ok(())
 }
 
+// 运行并打印命令行指令
+pub fn excute(s: &str) {
+    println!("command: {}", s);
+    match run(s) {
+        Ok(output) => {
+            std::io::stdout().write(&output).unwrap();
+        },
+        Err(e) => eprintln!("Error: {}", e),
+    }
+}
+
+// 执行命令行指令并返回结果
 pub fn run(command: &str) -> io::Result<Vec<u8>> {
-    // 将命令字符串分割成命令和参数
-    let parts: Vec<&str> = command.split_whitespace().collect();
-
-    // 获取命令和参数
-    let (cmd, args) = parts.split_first().unwrap();
-
-    // 执行命令
-    let output = Command::new(cmd)
-        .args(args)
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg(command)
         .output()?;
 
-    // 检查命令是否成功执行
     if output.status.success() {
         Ok(output.stdout)
-    }
-    else{
+    } else {
         Err(io::Error::new(
             io::ErrorKind::Other,
             String::from_utf8_lossy(&output.stderr).to_string(),
@@ -45,13 +38,13 @@ pub fn run(command: &str) -> io::Result<Vec<u8>> {
     }
 }
 
+/// 执行命令行指令并使用指定的检查器检查输出
+pub fn expect<F>(command: &str, checker: F) -> io::Result<bool>
+where
+    F: Fn(&str) -> bool,
+{
+    let output_bytes = run(command)?;
+    let output_str = String::from_utf8_lossy(&output_bytes);
+    Ok(checker(&output_str))
+}
 
-/*
-
-void run(string s);
-void get(string s);
-
-bool expect(string cmd, string s);
-bool expect(string cmd, function<bool(string s)> checker);
-
-*/

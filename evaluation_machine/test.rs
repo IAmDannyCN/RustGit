@@ -1,14 +1,18 @@
-use run;
-use std::io::Write;
+use super::*;
+const GIT: &str = "../test/git";
+const PATH: &str = "./test_area/";
 
-fn print_with_style(output: Vec<u8>) {
-    std::io::stdout().write(&output).unwrap();
-}
-
-pub fn excute(s: &str) {
-    println!("command: {}", s);
-    match run(s) {
-        Ok(output) => print_with_style(output),
+pub fn test() {
+    let command = format!("{} init -p {}", GIT, PATH);
+    excute(&command);
+    let command = format!("tree -a {}.mygit", PATH);
+    excute(&command);
+    let command = format!("tree -a {}.mygit", PATH);
+    match expect(&command, |output| {
+        output.contains(".mygit")
+    }) {
+        Ok(true) => println!("✅ Output contains only '.mygit'"),
+        Ok(false) => println!("❌ Output does not contain only '.mygit'"),
         Err(e) => eprintln!("Error: {}", e),
     }
 }
