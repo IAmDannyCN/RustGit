@@ -12,7 +12,7 @@ pub fn log() {
     let current_branch = match reference::get_current_branch() {
         Some(branch) => branch,
         None => {
-            eprintln!("Not on any branch (detached HEAD state)");
+            eprintln!("\x1b[31mError:\x1b[0m Not on any branch (detached HEAD state)");
             process::exit(1);
         }
     };
@@ -20,8 +20,8 @@ pub fn log() {
     // get the commit history for the current branch
     let initial_commit_hash = reference::get_head(&current_branch);
     
-    eprintln!("Commit history for branch '{}':", current_branch);
-    eprintln!("--------------------------------");
+    eprintln!("\x1b[1mCommit history for branch '\x1b[32m{}\x1b[0m\x1b[1m':\x1b[0m", current_branch);
+    eprintln!("\x1b[90m--------------------------------\x1b[0m");
 
     // get the commit history for the current branch
     let mut visited = HashSet::new();
@@ -55,24 +55,28 @@ pub fn log() {
 }
 
 fn print_commit(hash: &str, commit_data: &CommitData) {
-    eprintln!("commit {}", hash);
+    eprintln!("\x1b[33mcommit {}\x1b[0m", &hash[..7]);
     
     // display the parent commits
     if commit_data.parent_commits.len() > 1 {
-        eprint!("Merge:");
+        eprint!("\x1b[35mMerge:\x1b[0m");
         for parent in &commit_data.parent_commits {
-            print!(" {}", &parent[..7]);
+            eprint!(" \x1b[36m{}\x1b[0m", &parent[..7]);
         }
         eprintln!();
     }
     
-    eprintln!("Author: {}", commit_data.user);
-    eprintln!("Date:   {}", commit_data.time);
+    eprintln!("\x1b[34mAuthor:\x1b[0m {}", commit_data.user);
+    eprintln!("\x1b[34mDate:  \x1b[0m {}", commit_data.time);
     eprintln!();
-    eprintln!("    {}", commit_data.message);
+    for line in commit_data.message.lines() {
+        eprintln!("    \x1b[1m{}\x1b[0m", line);
+    }
     eprintln!();
-    eprintln!("--------------------------------");
+    eprintln!("\x1b[90m--------------------------------\x1b[0m");
 }
+
+//fixing
 
 // fn is_prev_commit_search(
 //     prev_commit_hash: &str,

@@ -1,0 +1,6 @@
+git init
+creat file1.txt
+git add file1.txt
+compare 
+git commit -m "233"
+end
