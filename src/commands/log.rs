@@ -76,8 +76,6 @@ fn print_commit(hash: &str, commit_data: &CommitData) {
     eprintln!("\x1b[90m--------------------------------\x1b[0m");
 }
 
-//fixing
-
 // fn is_prev_commit_search(
 //     prev_commit_hash: &str,
 //     post_commit_hash: &str,

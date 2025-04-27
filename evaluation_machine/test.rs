@@ -1,8 +1,14 @@
-pub fn print(s: &str) {
-    println!("{}", s);
+use run;
+use std::io::Write;
+
+fn print_with_style(output: Vec<u8>) {
+    std::io::stdout().write(&output).unwrap();
 }
 
 pub fn excute(s: &str) {
-    let output = crate::run(s).unwrap();
-    println!("{}", output);
+    println!("command: {}", s);
+    match run(s) {
+        Ok(output) => print_with_style(output),
+        Err(e) => eprintln!("Error: {}", e),
+    }
 }
