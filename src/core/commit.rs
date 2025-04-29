@@ -1,6 +1,6 @@
 use std::{collections::{HashMap, HashSet, VecDeque}, i32::MAX, process};
 
-use crate::{commands::{add, status}, utils::{hash, serialize}};
+use crate::{commands::*, utils::*};
 use super::{index::{self, IndexEntry}, object::*, reference, tree::TreeEntry};
 
 #[derive(Default)]
@@ -142,7 +142,7 @@ pub fn check_has_uncommitted() -> bool {
     }
 
     // Check the working area
-    let (index, _, _, _) = add::add_core(&[".".to_string()].to_vec());
+    let (index, _, _, _) = add::add_core(&[utils::pwd()].to_vec());
     let mut entries: HashSet<IndexEntry> = Default::default();
     for kv in &index {
         entries.insert(kv.1.clone());
