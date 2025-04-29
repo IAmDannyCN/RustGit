@@ -1,16 +1,15 @@
 use std::io::{self, Write};
 use std::process::Command;
 
-mod test;//执行的测试样例
-use test::test;
-
+mod test2s;
+use test2s::test;
 
 fn main() -> io::Result<()> {
-    test(); // 执行测试样例
+    let _ = test();
     Ok(())
 }
 
-// 运行并打印命令行指令
+// run a command and print the output
 pub fn excute(s: &str) {
     println!("command: {}", s);
     match run(s) {
@@ -21,7 +20,7 @@ pub fn excute(s: &str) {
     }
 }
 
-// 执行命令行指令并返回结果
+// excute a command and return the output
 pub fn run(command: &str) -> io::Result<Vec<u8>> {
     let output = Command::new("sh")
         .arg("-c")
@@ -38,7 +37,7 @@ pub fn run(command: &str) -> io::Result<Vec<u8>> {
     }
 }
 
-/// 执行命令行指令并使用指定的检查器检查输出
+// excute a command and check the output with a closure
 pub fn expect<F>(command: &str, checker: F) -> io::Result<bool>
 where
     F: Fn(&str) -> bool,
