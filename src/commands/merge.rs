@@ -60,11 +60,11 @@ fn analyse_merge_conflict(path: &str, entry1: &TreeEntry, entry2: &TreeEntry) {
     let data2: Vec<u8> = blob2.data.unwrap();
 
     let Ok(text1) = str::from_utf8(&data1) else {
-        eprintln!("Merge conflicit in {}", path);
+        eprintln!("Merge conflict in {}", path);
         return;
     };
     let Ok(text2) = str::from_utf8(&data2) else {
-        eprintln!("Merge conflicit in {}", path);
+        eprintln!("Merge conflict in {}", path);
         return;
     };
 
@@ -97,9 +97,9 @@ fn analyse_merge_conflict(path: &str, entry1: &TreeEntry, entry2: &TreeEntry) {
 
     for (start, end) in conflict_ranges {
         if start == end {
-            eprintln!("Merge conflicit in {}: {}", path, start);
+            eprintln!("Merge conflict in {}: {}", path, start);
         } else {
-            eprintln!("Merge conflicit in {}: [{}, {}]", path, start, end);
+            eprintln!("Merge conflict in {}: [{}, {}]", path, start, end);
         }
     }
 }
