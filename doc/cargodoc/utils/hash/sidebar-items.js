@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["FOLDER_LENGTH","HASH_LENGTH"],"fn":["sha1"]};

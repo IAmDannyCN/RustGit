@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["check_has_uncommitted","diff_commit_to_commit","get_merge_base","get_parent_commit_dis","is_prev_commit","is_prev_commit_search","merge_parent_commit_dis"],"struct":["Commit","CommitData"],"trait":["CommitTrait"]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["get_blob_from_file","get_blob_type"],"struct":["Blob"],"trait":["BlobTrait"]};
