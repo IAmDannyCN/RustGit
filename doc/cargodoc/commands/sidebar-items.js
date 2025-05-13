@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["add","branch","checkout","commit","init","log","merge","rm","status"]};

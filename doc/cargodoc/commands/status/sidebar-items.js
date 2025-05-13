@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["diff_index_entries_to_commit","status"]};

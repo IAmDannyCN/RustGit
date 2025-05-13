@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["read_index","register_files","write_index"],"struct":["IndexEntry"],"type":["Index"]};

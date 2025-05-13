@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["clear_index","clear_working_area","create_directory","create_file","create_nonexist_directory","create_nonexist_file","read_file","read_text_file","remove_file","remove_path","restore_index_by_tree","restore_tree","restore_working_area","write_file","write_text_file"]};

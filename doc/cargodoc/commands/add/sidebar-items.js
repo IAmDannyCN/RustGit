@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["add","add_core","register_entries"]};

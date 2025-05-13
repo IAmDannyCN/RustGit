@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["delete_original_directory","init"]};

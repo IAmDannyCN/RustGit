@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["get_git_directory","get_relative_path","get_time_string","get_username","is_subpath","pwd","relative_path","set_pwd","split_path_by_first","split_path_by_last"],"static":["PWD"]};

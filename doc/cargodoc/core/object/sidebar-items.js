@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["ObjectType"],"fn":["get_object_path","get_object_type","read_object_file","write_object_file"]};

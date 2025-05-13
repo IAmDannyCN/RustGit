@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["checkout","checkout_to_commit"]};
