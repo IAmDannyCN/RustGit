@@ -1,5 +1,5 @@
 [package]
-name = "git"
+name = "rust-git"
 version = "0.1.0"
 edition = "2021"
 

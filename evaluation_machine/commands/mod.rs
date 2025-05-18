@@ -7,6 +7,8 @@ pub mod test3s;
 pub mod test4;
 pub mod test5;
 
+pub mod testLJH1;
+
 use std::error::Error;
 
 pub type CommandResult = Result<(), Box<dyn Error>>;

@@ -29,9 +29,10 @@ fn main() -> CommandResult {
         "test1s" => commands::test1s::Test1sCommand.execute()?,
         "test2s" => commands::test2s::Test2sCommand.execute()?,
         "test3s" => commands::test3s::Test3sCommand.execute()?,
+        "testLJH1" => commands::testLJH1::TestLJH1Command.execute()?,
         _ => {
             println!("Unknown command: {}", args[1]);
-            println!("Available commands: test1, test2, test3, test4, test5, test1s, test2s, test3s");
+            println!("Available commands: test1, test2, test3, test4, test5, test1s, test2s, test3s, testLJH1");
         }
     }
 

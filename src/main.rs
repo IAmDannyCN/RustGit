@@ -104,7 +104,7 @@ enum Commands {
         target: String,
 
         /// Force checkout even there are uncommited changes.
-        #[arg(short = 'f', long, default_value = "false")]
+        #[arg(short = 'f', long, default_value = "true")]
         force: bool,
 
         /// Create a new branch and checkout
@@ -121,7 +121,7 @@ enum Commands {
         branch: String,
 
         /// Force merge even there are uncommited changes.
-        #[arg(short = 'f', long, default_value = "false")]
+        #[arg(short = 'f', long, default_value = "true")]
         force: bool,
 
         #[clap(flatten)]

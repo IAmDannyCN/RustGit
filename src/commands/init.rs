@@ -14,7 +14,7 @@ fn delete_original_directory(git_directory: &str) {
 }
 
 pub fn init(initial_branch: Option<String>) {
-    let git_directory: String = utils::pwd() + "/.mygit";
+    let git_directory: String = utils::pwd() + "/.git";//"/.mygit";
 
     delete_original_directory(&git_directory);
 

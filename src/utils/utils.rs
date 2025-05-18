@@ -38,7 +38,7 @@ pub fn get_git_directory() -> String {
     let mut path = PathBuf::from(pwd());
 
     loop {
-        let git_path = path.join(".mygit");
+        let git_path = path.join(".git");//path.join(".mygit");
         if git_path.exists() {
             return git_path.to_string_lossy().into_owned();
         }
