@@ -131,7 +131,18 @@ pub fn merge(merge_branch: String, force: bool) {
         println!("Merged branch {} to {} by Fast-Forward Policy.", current_branch, merge_branch);
 
         storage::clear_working_area();
-        storage::restore_working_area(&reference::get_head(&current_branch));
+        let commit_hash = reference::get_head(&current_branch);
+        storage::restore_working_area(&commit_hash);
+
+        let mut commit = Commit {
+            hash: Some(commit_hash),
+            data: None
+        };
+        commit.read_commit();
+    
+        let mut index_entries: HashMap<String, IndexEntry> = Default::default();
+        storage::restore_index_by_tree(&commit.data.unwrap().tree_hash, &utils::pwd(), &mut index_entries);
+        index::write_index(&index_entries);
 
         process::exit(0);
     }
@@ -337,11 +348,22 @@ pub fn merge(merge_branch: String, force: bool) {
 
     reference::store_head(&current_branch, &new_head_hash);
 
-    storage::clear_index();
+    // storage::clear_index();
 
     // restore working area
     storage::clear_working_area();
     storage::restore_working_area(&new_head_hash);
+
+    // restore index
+    let mut commit = Commit {
+        hash: Some(new_head_hash.to_string()),
+        data: None
+    };
+    commit.read_commit();
+
+    let mut index_entries: HashMap<String, IndexEntry> = Default::default();
+    storage::restore_index_by_tree(&commit.data.unwrap().tree_hash, &utils::pwd(), &mut index_entries);
+    index::write_index(&index_entries);
 
     println!("Merged branches {} and {}.", current_branch, merge_branch);
     

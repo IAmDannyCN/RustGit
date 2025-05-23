@@ -189,13 +189,13 @@ pub fn clear_working_area() {
     } 
 }
 
-pub fn clear_index() {
-    let index_path = format!("{}/index", utils::get_git_directory());
-    if let Err(e) = write_text_file(&index_path, "") {
-        eprintln!("Error clearing index file {} : {}", index_path, e);
-        process::exit(1);
-    }
-}
+// pub fn clear_index() {
+//     let index_path = format!("{}/index", utils::get_git_directory());
+//     if let Err(e) = write_text_file(&index_path, "") {
+//         eprintln!("Error clearing index file {} : {}", index_path, e);
+//         process::exit(1);
+//     }
+// }
 
 /// Restores the working area from a tree hash.
 fn restore_tree(tree_hash: &str, tree_path: &str) {
