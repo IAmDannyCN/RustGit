@@ -212,7 +212,7 @@ pub fn commit_index(message: String, verbose: bool) {
 
     reference::store_head(&current_branch, &new_head_hash);
 
-    storage::clear_index();
+    // storage::clear_index();
 
     if !verbose {
         eprintln!("{}", new_head_hash);

@@ -15,6 +15,8 @@ use crate::core::index::IndexEntry;
 use crate::core::tree::Tree;
 use crate::core::tree::TreeTrait;
 use crate::core::tree::TreeEntryType;
+use crate::core::index;
+use crate::core::index::Index;
 
 use super::utils;
 
@@ -149,30 +151,42 @@ pub fn create_nonexist_file(file_name: &str) {
     create_file(&file_name);
 }
 
+// pub fn clear_working_area() {
+//     let working_path = utils::pwd();
+//     let git_dir = PathBuf::from(utils::get_git_directory());
+
+//     for entry in fs::read_dir(&working_path).unwrap() {
+//         let entry = entry.unwrap();
+//         let path = entry.path();
+
+//         if path == git_dir {
+//             continue;
+//         }
+
+//         if path.is_dir() {
+//             fs::remove_dir_all(&path).unwrap_or_else(|e| {
+//                 eprintln!("Failed to remove directory {}: {}", path.display(), e);
+//                 std::process::exit(1);
+//             });
+//         } else {
+//             fs::remove_file(&path).unwrap_or_else(|e| {
+//                 eprintln!("Failed to remove file {}: {}", path.display(), e);
+//                 std::process::exit(1);
+//             });
+//         }
+//     }
+// }
 pub fn clear_working_area() {
-    let working_path = utils::pwd();
-    let git_dir = PathBuf::from(utils::get_git_directory());
+    let repo_path = utils::pwd();
 
-    for entry in fs::read_dir(&working_path).unwrap() {
-        let entry = entry.unwrap();
-        let path = entry.path();
-
-        if path == git_dir {
-            continue;
-        }
-
-        if path.is_dir() {
-            fs::remove_dir_all(&path).unwrap_or_else(|e| {
-                eprintln!("Failed to remove directory {}: {}", path.display(), e);
-                std::process::exit(1);
-            });
-        } else {
-            fs::remove_file(&path).unwrap_or_else(|e| {
-                eprintln!("Failed to remove file {}: {}", path.display(), e);
-                std::process::exit(1);
-            });
-        }
-    }
+    let index_entries: Index = index::read_index();
+    for entry in &index_entries {
+        let path = PathBuf::from(format!("{}/{}", repo_path, entry.0));
+        fs::remove_file(&path).unwrap_or_else(|e| {
+            eprintln!("Failed to remove directory {}: {}", path.display(), e);
+            std::process::exit(1);
+        });
+    } 
 }
 
 pub fn clear_index() {
