@@ -1,18 +1,27 @@
+//! Module: init
+//!
+//! Implements the initialization logic for a new Git repository, similar to `git init`.
+//! Creates the necessary directory structure and initial files inside `.git`,
+//! and sets up the default branch reference.
+
 use crate::utils::*;
 
 use std::{fs, path::Path, process};
 
-fn delete_original_directory(git_directory: &str) {
-    let path = Path::new(&git_directory);
-    if path.exists() {
-        if let Err(e) = fs::remove_dir_all(path) {
-            eprintln!("Error deleting original repository: {}", e);
-        } else {
-            println!("Reinitialized existing Git repository at: {}", git_directory);
-        }
-    }
-}
 
+/// Initializes a new Git repository in the current working directory.
+///
+/// # Arguments
+/// * `initial_branch` - Optional name of the initial branch (defaults to "master").
+///
+/// # Behavior
+/// 1. Deletes any existing `.git` directory if present.
+/// 2. Recreates the `.git` directory and all required subdirectories.
+/// 3. Sets up the initial `HEAD` reference pointing to the specified branch.
+/// 4. Creates an empty index file and branch reference.
+///
+/// # Exits
+/// * If writing the HEAD reference fails.
 pub fn init(initial_branch: Option<String>) {
     let git_directory: String = utils::pwd() + "/.git";//"/.mygit";
 
@@ -47,4 +56,23 @@ pub fn init(initial_branch: Option<String>) {
         process::exit(1);
     }
     create_nonexist_file(&format!("{}/refs/heads/{}", git_directory, branch_name));
+}
+
+
+/// Removes the existing `.git` directory if it exists.
+///
+/// # Arguments
+/// * `git_directory` - Path to the `.git` directory to delete.
+///
+/// # Notes
+/// * If deletion fails, only prints an error but does not exit.
+fn delete_original_directory(git_directory: &str) {
+    let path = Path::new(&git_directory);
+    if path.exists() {
+        if let Err(e) = fs::remove_dir_all(path) {
+            eprintln!("Error deleting original repository: {}", e);
+        } else {
+            println!("Reinitialized existing Git repository at: {}", git_directory);
+        }
+    }
 }

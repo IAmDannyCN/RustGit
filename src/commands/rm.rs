@@ -1,3 +1,10 @@
+//! Module: rm
+//!
+//! Implements file removal functionality, including support for:
+//! - Removing files from the working directory and/or index
+//! - Recursive deletion of directories
+//! - Beautified verbose output
+
 use std::collections::HashSet;
 use std::path::Path;
 use std::process;
@@ -6,6 +13,24 @@ use crate::{core::*, utils::*};
 use crate::core::index::IndexEntry;
 
 
+/// Removes files from the working directory and/or index based on user-specified options.
+///
+/// # Arguments
+/// * `files` - List of file/directory paths to remove.
+/// * `recursive` - If true, recursively removes directories and their contents.
+/// * `cached` - If true, only removes files from the index, not from the filesystem.
+/// * `verbose` - If true, displays detailed information about removed files.
+///
+/// # Behavior
+/// 1. Reads the current index.
+/// 2. Registers the files/directories to be removed.
+/// 3. Removes matching entries from the index.
+/// 4. Optionally removes files from the working area.
+/// 5. Writes the updated index back to disk.
+///
+/// # Exits
+/// * If any path cannot be canonicalized.
+/// * If any path is outside the repository root.
 pub fn remove(files: Vec<String>, recursive: bool, cached: bool, verbose: bool) {
     let mut index = index::read_index();
     let repo_path = utils::pwd();

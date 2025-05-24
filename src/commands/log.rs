@@ -1,5 +1,7 @@
-// use std::collections::HashMap;
-// use std::{collections::HashSet, process};
+//! Module: log
+//!
+//! Implements the commit history viewer, displaying a formatted list of commits
+//! starting from the current branch head and following parent links.
 
 use std::collections::{HashSet, VecDeque};
 use std::process;
@@ -7,6 +9,21 @@ use crate::core::*;
 use crate::core::commit::{Commit, CommitTrait};
 use crate::core::commit::CommitData;
 
+
+/// Displays the commit history of the current branch in a human-readable format.
+///
+/// # Exits
+/// * If the repository is in a detached HEAD state (not on any branch).
+///
+/// # Output Format
+/// For each commit:
+/// - Commit hash (shortened)
+/// - Merge parents (if any)
+/// - Author name
+/// - Commit timestamp
+/// - Commit message
+///
+/// Uses ANSI color codes for better visual clarity.
 pub fn log() {
     // get the current branch name
     let current_branch = match reference::get_current_branch() {
@@ -54,6 +71,14 @@ pub fn log() {
     }
 }
 
+
+/// Prints detailed information about a single commit to standard error.
+///
+/// # Arguments
+/// * `hash` - SHA-1 hash of the commit.
+/// * `commit_data` - Parsed data of the commit object.
+///
+/// Includes support for displaying merge commit parent hashes with colored formatting.
 fn print_commit(hash: &str, commit_data: &CommitData) {
     eprintln!("\x1b[33mcommit {}\x1b[0m", &hash[..7]);
     
@@ -75,34 +100,3 @@ fn print_commit(hash: &str, commit_data: &CommitData) {
     eprintln!();
     eprintln!("\x1b[90m--------------------------------\x1b[0m");
 }
-
-// fn is_prev_commit_search(
-//     prev_commit_hash: &str,
-//     post_commit_hash: &str,
-//     searched_commits: &mut HashSet<String>
-// ) -> bool {
-//     if prev_commit_hash == post_commit_hash {
-//         return true;
-//     } else if prev_commit_hash == "" {
-//         return true;
-//     } else if post_commit_hash == "" {
-//         return false;
-//     }
-
-//     if let Some(_) = searched_commits.get(post_commit_hash) {
-//         return false;
-//     }
-//     searched_commits.insert(post_commit_hash.to_string());
-    
-//     // prev != post, and both != ""
-//     let mut post_commit = Commit { hash: Some(post_commit_hash.to_string()), data: None };
-//     post_commit.read_commit();
-
-//     for parent_commit_hash in post_commit.data.unwrap().parent_commits {
-//         if is_prev_commit_search(prev_commit_hash, &parent_commit_hash, searched_commits) {
-//             return true;
-//         }
-//     }
-
-//     false
-// }

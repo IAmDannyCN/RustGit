@@ -1,7 +1,38 @@
+//! Module: branch
+//!
+//! Implements branch management functionality, including:
+//! - Creating new branches
+//! - Deleting existing branches
+//! - Listing all available branches
+//!
+//! Ensures safety by preventing deletion of the current branch or non-ancestor branches.
+
 use std::process;
 
 use crate::{core::reference, utils::{storage, utils}};
 
+
+/// Manages Git branches: create, delete, or list branches based on input arguments.
+///
+/// # Arguments
+/// * `name` - Optional vector containing names for creating or operating on branches.
+/// * `delete` - If true, deletes the specified branches.
+/// * `verbose` - If true, displays beautified output instead of minimal status.
+///
+/// # Behavior
+/// 1. **Create mode**: Creates a new branch pointing to the current commit.
+///    - Requires exactly one name in `name`.
+///    - Fails if in detached HEAD state.
+/// 2. **Delete mode**: Deletes the specified branches.
+///    - Prevents deleting the current branch.
+///    - Only allows deletion of branches that are direct ancestors of the current branch.
+/// 3. **List mode**: Lists all branches with an asterisk next to the current branch.
+///
+/// # Exits
+/// - If trying to delete current branch.
+/// - If trying to delete non-ancestor branch.
+/// - If trying to create branch while in detached HEAD state.
+/// - If trying to create more than one branch at once.
 pub fn branch(name: Option<Vec<String>>, delete: bool, verbose: bool) {
     match (name, delete) {
         (Some(branches), true) => {

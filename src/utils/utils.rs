@@ -1,3 +1,8 @@
+//! Module: utils
+//!
+//! Provides utility functions for path manipulation, environment handling,
+//! time formatting, and working directory management used throughout the Git implementation.
+
 use std::path::{Path, PathBuf};
 use std::{env, process};
 use std::sync::OnceLock;
@@ -6,7 +11,14 @@ use chrono::Local;
 
 static PWD: OnceLock<String> = OnceLock::new();
 
-/// Sets the PWD environment variable to the absolute path of the given directory.
+
+/// Sets the current working directory (PWD) to the absolute path of the given directory.
+///
+/// # Arguments
+/// * `path` - The directory path to set as the working directory.
+///
+/// # Exits
+/// * If canonicalization fails or if PWD was already set.
 pub fn set_pwd(path: &str) {
     let abs_path = match Path::new(path).canonicalize() {
         Ok(p) => p.to_string_lossy().into_owned(),
@@ -22,7 +34,11 @@ pub fn set_pwd(path: &str) {
     }
 }
 
-/// Returns the current working directory (PWD) as a String.
+
+/// Returns the current working directory (PWD).
+///
+/// # Exits
+/// * If PWD has not been set yet.
 pub fn pwd() -> String {
     match PWD.get() {
         Some(res) => res.clone(),
@@ -33,7 +49,11 @@ pub fn pwd() -> String {
     }
 }
 
-/// Returns the absolute path of the current working directory.
+
+/// Locates and returns the absolute path to the `.git` directory by searching from the current directory upward.
+///
+/// # Exits
+/// * If no `.git` directory is found in the current or any parent directory.
 pub fn get_git_directory() -> String {
     let mut path = PathBuf::from(pwd());
 
@@ -49,20 +69,15 @@ pub fn get_git_directory() -> String {
     }
 }
 
-// pub fn is_subpath(parent: &str, child: &str) -> bool {
-//     let parent = match Path::new(parent).canonicalize() {
-//         Ok(p) => p,
-//         Err(_) => return false,
-//     };
 
-//     let child = match Path::new(child).canonicalize() {
-//         Ok(p) => p,
-//         Err(_) => return false,
-//     };
-//     child.starts_with(&parent)
-// }
-
-/// Checks if the child path is a subpath of the parent path.
+/// Checks whether one path is a subpath of another.
+///
+/// # Arguments
+/// * `parent` - Potential parent path.
+/// * `child` - Potential child path.
+///
+/// # Returns
+/// * `bool` - True if `child` is under `parent`.
 pub fn is_subpath(parent: &str, child: &str) -> bool {
     let parent = Path::new(parent).components().collect::<Vec<_>>();
     let child = Path::new(child).components().collect::<Vec<_>>();
@@ -74,7 +89,15 @@ pub fn is_subpath(parent: &str, child: &str) -> bool {
     parent.iter().zip(child.iter()).all(|(a, b)| a == b)
 }
 
-/// Returns the relative path from the parent to the child path.
+
+/// Returns the relative path from the `parent` to the `child`.
+///
+/// # Arguments
+/// * `parent` - Base path.
+/// * `child` - Full path to derive the relative part from.
+///
+/// # Panics
+/// * If `child` is not under `parent`.
 pub fn relative_path(parent: &str, child: &str) -> String {
     let parent = Path::new(parent);
     let child = Path::new(child);
@@ -87,13 +110,14 @@ pub fn relative_path(parent: &str, child: &str) -> String {
     }
 }
 
-// pub fn get_dir_name(path: &str) -> String {
-//     Path::new(path)
-//         .parent()
-//         .map(|p| p.to_string_lossy().to_string())
-//         .unwrap_or_else(|| "".to_string())
-// }
 
+/// Splits a path into the first component and the rest.
+///
+/// # Arguments
+/// * `path` - A string representing a file path.
+///
+/// # Returns
+/// * `(String, String)` - First component and the remaining path.
 pub fn split_path_by_first(path: &str) -> (String, String) {
     match path.find('/') {
         Some(pos) => {
@@ -105,6 +129,14 @@ pub fn split_path_by_first(path: &str) -> (String, String) {
     }
 }
 
+
+/// Splits a path into everything except the last component and the last component.
+///
+/// # Arguments
+/// * `path` - A string representing a file path.
+///
+/// # Returns
+/// * `(String, String)` - Parent path and last component.
 pub fn split_path_by_last(path: &str) -> (String, String) {
     match path.rfind('/') {
         Some(pos) => {
@@ -116,10 +148,24 @@ pub fn split_path_by_last(path: &str) -> (String, String) {
     }
 }
 
+
+/// Returns the current local timestamp formatted as a string.
+///
+/// Format: `YYYYMMDDHHMMSSmmm` (millisecond precision)
+///
+/// # Returns
+/// * `String` - Formatted timestamp.
 pub fn get_time_string() -> String {
     Local::now().format("%Y%m%d%H%M%S%3f").to_string()
 }
 
+
+/// Returns the current user's username from environment variables.
+///
+/// Tries `USER` first, then `USERNAME`.
+///
+/// # Returns
+/// * `String` - Username or "unknown" if none is found.
 pub fn get_username() -> String {
     match env::var("USER")
         .or_else(|_| env::var("USERNAME"))
@@ -129,7 +175,15 @@ pub fn get_username() -> String {
     }
 }
 
-/// Returns the relative path from the parent path to the full path.
+
+/// Returns the relative path from `parent_path` to `path`.
+///
+/// # Arguments
+/// * `parent_path` - Base directory.
+/// * `path` - Full path to convert to relative.
+///
+/// # Exits
+/// * If `path` is not under `parent_path`.
 pub fn get_relative_path(parent_path: &str, path: &str) -> String {
     let parent = Path::new(parent_path);
     let full = Path::new(path);

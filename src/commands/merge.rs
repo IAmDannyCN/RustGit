@@ -1,111 +1,37 @@
+//! Module: merge
+//!
+//! Implements the merge functionality, allowing two branches to be merged into one.
+//! Handles fast-forward merges and three-way merges with conflict detection and reporting.
+//!
+//! This module is responsible for:
+//! - Detecting whether a fast-forward merge is possible.
+//! - Performing a three-way merge using a common ancestor.
+//! - Reporting file conflicts when both sides modified the same content.
+//! - Updating the working directory and index after a successful merge.
+
 use std::{collections::{HashMap, HashSet}, path::Path, process, str};
 
 use crate::{commands::commit::commit_merge, core::{blob::{Blob, BlobTrait}, commit::{Commit, CommitTrait}, index::IndexEntry, tree::*, *}, utils::*};
 
-fn register_blob(
-    tree_hash: &str,
-    tree_path: &str,
-    blob_table: &mut HashMap<String, tree::TreeEntry>,
-    success: &mut bool
-) {
-    let mut tree = Tree { hash: Some(tree_hash.to_owned()), data: None};
-    tree.read_tree();
 
-    let entries = tree.data.as_ref().unwrap();
-    for entry in entries {
-        let entry_path = format!("{}/{}", tree_path, entry.name);
-        match entry.entry_type {
-            TreeEntryType::Tree => {
-                register_blob(&entry.hash, &entry_path, blob_table, success);
-            }
-            _ => {
-                // This is a blob
-                if let Some(stored_entry) = blob_table.get(&entry_path) {
-                    if stored_entry != entry {
-                        eprintln!("Conflict deteced on {}.", entry_path);
-                        *success = false;
-                    }
-                } else {
-                    blob_table.insert(entry_path, entry.clone());
-                }
-            }
-        }
-    }
-}
-
-fn register_blob_by_commit(commit_hash: &str, blob_table: &mut HashMap<String, TreeEntry>) {
-    let mut commit = Commit { hash: Some(commit_hash.to_owned()), data: None };
-    commit.read_commit();
-    let root_hash = commit.data.unwrap().tree_hash;
-
-    let mut success: bool = true;
-    register_blob(&root_hash, &utils::pwd(), blob_table, &mut success);
-    if !success {
-        eprintln!("Failed to merge. Nothing changed.");
-        process::exit(1);
-    }
-}
-
-// fn register_blob_by_branch(branch_name: &str, blob_table: &mut HashMap<String, TreeEntry>) {
-//     let commit_hash = reference::get_head(&branch_name);
-//     register_blob_by_commit(&commit_hash, blob_table);
-// }
-
-fn analyse_merge_conflict(path: &str, entry1: &TreeEntry, entry2: &TreeEntry) {
-    let mut blob1 = Blob { hash: Some(entry1.hash.clone()), data: None };
-    let mut blob2 = Blob { hash: Some(entry2.hash.clone()), data: None };
-    blob1.read_blob();
-    blob2.read_blob();
-    let data1: Vec<u8> = blob1.data.unwrap();
-    let data2: Vec<u8> = blob2.data.unwrap();
-
-    let repo_path = utils::pwd();
-
-    let Ok(text1) = str::from_utf8(&data1) else {
-        eprintln!("Merge conflict in {}", utils::relative_path(&repo_path, path));
-        return;
-    };
-    let Ok(text2) = str::from_utf8(&data2) else {
-        eprintln!("Merge conflict in {}", utils::relative_path(&repo_path, path));
-        return;
-    };
-
-    let lines1: Vec<_> = text1.lines().collect();
-    let lines2: Vec<_> = text2.lines().collect();
-    let max_len = lines1.len().max(lines2.len());
-
-    let mut conflict_ranges = vec![];
-    let mut in_conflict = false;
-    let mut start = 0;
-
-    for i in 0..max_len {
-        let line1 = lines1.get(i).unwrap_or(&"");
-        let line2 = lines2.get(i).unwrap_or(&"");
-
-        if line1 != line2 {
-            if !in_conflict {
-                in_conflict = true;
-                start = i + 1; // 1-based
-            }
-        } else if in_conflict {
-            in_conflict = false;
-            conflict_ranges.push((start, i));
-        }
-    }
-
-    if in_conflict {
-        conflict_ranges.push((start, max_len));
-    }
-
-    for (start, end) in conflict_ranges {
-        if start == end {
-            eprintln!("Merge conflict in {}: {}", utils::relative_path(&repo_path, path), start);
-        } else {
-            eprintln!("Merge conflict in {}: [{}, {}]", utils::relative_path(&repo_path, path), start, end);
-        }
-    }
-}
-
+/// Merges the specified branch into the current branch.
+///
+/// # Arguments
+/// * `merge_branch` - Name of the branch to merge into the current branch.
+/// * `force` - If true, allows merging even if there are uncommitted changes.
+///
+/// # Behavior
+/// 1. Checks if the repository is in a valid state (not detached HEAD).
+/// 2. Determines if a fast-forward merge is possible.
+/// 3. Otherwise performs a three-way merge using the merge base.
+/// 4. Detects and reports conflicts if files were changed differently on both branches.
+/// 5. Updates the working area and index with the merged content.
+///
+/// # Exits
+/// - If there are uncommitted changes and `force` is false.
+/// - If the repository is in detached HEAD state.
+/// - If any merge conflicts are detected.
+/// - If an I/O or internal error occurs during processing.
 pub fn merge(merge_branch: String, force: bool) {
 
     if !force && commit::check_has_uncommitted() {
@@ -368,53 +294,128 @@ pub fn merge(merge_branch: String, force: bool) {
     index::write_index(&index_entries);
 
     println!("Merged branches {} and {}.", current_branch, merge_branch);
-    
-    /*
-    register_blob_by_branch(&current_branch, &mut blob_table);
-    register_blob_by_branch(&merge_branch, &mut blob_table);
+}
 
-    // blob_table now stores every entry.
 
-    // restore working area
-    storage::clear_working_area();
-    storage::restore_working_area(&reference::get_head(&current_branch));
-    storage::restore_working_area(&reference::get_head(&merge_branch));
+/// Recursively registers all blobs under a given tree into a blob table.
+///
+/// Used during merge to track file paths and their corresponding tree entries.
+///
+/// # Arguments
+/// * `tree_hash` - SHA-1 hash of the tree to traverse.
+/// * `tree_path` - Filesystem path where this tree is restored.
+/// * `blob_table` - Mutable reference to the map storing blob entries by path.
+/// * `success` - Boolean flag indicating whether all operations succeeded.
+fn register_blob(
+    tree_hash: &str,
+    tree_path: &str,
+    blob_table: &mut HashMap<String, tree::TreeEntry>,
+    success: &mut bool
+) {
+    let mut tree = Tree { hash: Some(tree_hash.to_owned()), data: None};
+    tree.read_tree();
 
-    // generate new commit
-    let mut index_entries: HashSet<IndexEntry> = Default::default();
-    
-    for (blob_path, blob_entry) in blob_table {
-        let repo_path = utils::pwd();
-        assert!(blob_path.starts_with(&repo_path));
-        let rel_path = Path::new(&blob_path)
-            .strip_prefix(&repo_path)
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .to_string();
+    let entries = tree.data.as_ref().unwrap();
+    for entry in entries {
+        let entry_path = format!("{}/{}", tree_path, entry.name);
+        match entry.entry_type {
+            TreeEntryType::Tree => {
+                register_blob(&entry.hash, &entry_path, blob_table, success);
+            }
+            _ => {
+                // This is a blob
+                if let Some(stored_entry) = blob_table.get(&entry_path) {
+                    if stored_entry != entry {
+                        eprintln!("Conflict deteced on {}.", entry_path);
+                        *success = false;
+                    }
+                } else {
+                    blob_table.insert(entry_path, entry.clone());
+                }
+            }
+        }
+    }
+}
 
-        index_entries.insert(IndexEntry { path: rel_path, hash: blob_entry.hash });
+
+/// Registers all blobs from a commit's tree into the blob table.
+///
+/// # Arguments
+/// * `commit_hash` - SHA-1 hash of the commit to extract blob data from.
+/// * `blob_table` - Mutable reference to the map storing blob entries by path.
+fn register_blob_by_commit(commit_hash: &str, blob_table: &mut HashMap<String, TreeEntry>) {
+    let mut commit = Commit { hash: Some(commit_hash.to_owned()), data: None };
+    commit.read_commit();
+    let root_hash = commit.data.unwrap().tree_hash;
+
+    let mut success: bool = true;
+    register_blob(&root_hash, &utils::pwd(), blob_table, &mut success);
+    if !success {
+        eprintln!("Failed to merge. Nothing changed.");
+        process::exit(1);
+    }
+}
+
+
+/// Analyzes and prints detailed conflict information between two versions of a file.
+///
+/// # Arguments
+/// * `path` - Path of the conflicting file.
+/// * `entry1` - First version's tree entry.
+/// * `entry2` - Second version's tree entry.
+fn analyse_merge_conflict(path: &str, entry1: &TreeEntry, entry2: &TreeEntry) {
+    let mut blob1 = Blob { hash: Some(entry1.hash.clone()), data: None };
+    let mut blob2 = Blob { hash: Some(entry2.hash.clone()), data: None };
+    blob1.read_blob();
+    blob2.read_blob();
+    let data1: Vec<u8> = blob1.data.unwrap();
+    let data2: Vec<u8> = blob2.data.unwrap();
+
+    let repo_path = utils::pwd();
+
+    let Ok(text1) = str::from_utf8(&data1) else {
+        eprintln!("Merge conflict in {}", utils::relative_path(&repo_path, path));
+        return;
+    };
+    let Ok(text2) = str::from_utf8(&data2) else {
+        eprintln!("Merge conflict in {}", utils::relative_path(&repo_path, path));
+        return;
+    };
+
+    let lines1: Vec<_> = text1.lines().collect();
+    let lines2: Vec<_> = text2.lines().collect();
+    let max_len = lines1.len().max(lines2.len());
+
+    let mut conflict_ranges = vec![];
+    let mut in_conflict = false;
+    let mut start = 0;
+
+    for i in 0..max_len {
+        let line1 = lines1.get(i).unwrap_or(&"");
+        let line2 = lines2.get(i).unwrap_or(&"");
+
+        if line1 != line2 {
+            if !in_conflict {
+                in_conflict = true;
+                start = i + 1; // 1-based
+            }
+        } else if in_conflict {
+            in_conflict = false;
+            conflict_ranges.push((start, i));
+        }
     }
 
-    let parent_commits = [
-        reference::get_head(&current_branch),
-        reference::get_head(&merge_branch)
-    ];
+    if in_conflict {
+        conflict_ranges.push((start, max_len));
+    }
 
-    let new_head_hash = commit(
-        &index_entries,
-        format!("Merge branch {} and {}.", current_branch, merge_branch),
-        utils::get_time_string(),
-        utils::get_username(),
-        parent_commits.to_vec()
-    );
-
-    reference::store_head(&current_branch, &new_head_hash);
-
-    storage::clear_index();
-
-    println!("Merged branches {} and {}.", current_branch, merge_branch);
-    */
+    for (start, end) in conflict_ranges {
+        if start == end {
+            eprintln!("Merge conflict in {}: {}", utils::relative_path(&repo_path, path), start);
+        } else {
+            eprintln!("Merge conflict in {}: [{}, {}]", utils::relative_path(&repo_path, path), start, end);
+        }
+    }
 }
 
 

@@ -1,16 +1,38 @@
+//! Module: index
+//!
+//! Provides structures and functions for managing the Git index (staging area),
+//! including reading and writing the `.git/index` file and recursively registering
+//! files and directories into the index.
+
 use std::{collections::{HashMap, HashSet}, fs, path::Path, process};
 
 use crate::utils::*;
 
+/// Represents a file entry in the staging index.
 #[derive(PartialEq, Eq, Hash, Clone)]
 pub struct IndexEntry {
+    /// Relative file path
     pub path: String,
+    /// Hash (blob ID) of the file content
     pub hash: String,
 }
 
+/// Type alias for the index (staging area), mapping file path → `IndexEntry`
 pub type Index = HashMap<String, IndexEntry>;
 
-/// read and parse .git/index
+
+/// Reads and parses the `.git/index` file into an in-memory `Index`.
+///
+/// # Returns
+/// * `Index` - A map of file paths to their corresponding index entries.
+///
+/// # Panics
+/// * If the index content is invalid UTF-8.
+/// * If index format is not prefixed with `"DIRC"` magic string.
+/// * If any line is malformed and doesn't contain two null-separated fields.
+///
+/// # Exits
+/// * If the index file cannot be read, prints an error and exits the process.
 pub fn read_index() -> Index {
     
     let index_path = utils::get_git_directory() + "/index";
@@ -46,6 +68,18 @@ pub fn read_index() -> Index {
     entries
 }
 
+
+/// Serializes and writes the given `Index` into `.git/index`.
+///
+/// # Arguments
+/// * `index` - The staging index to write.
+///
+/// # Format
+/// Each line after the `"DIRC"` magic string consists of:
+/// `path\0hash\n`
+///
+/// # Exits
+/// * If the write operation fails, prints an error and exits the process.
 pub fn write_index(index: &Index) {
 
     let index_path = utils::get_git_directory() + "/index";
@@ -65,6 +99,20 @@ pub fn write_index(index: &Index) {
     }
 }
 
+
+/// Recursively (if enabled) registers files into the index set from a given path.
+///
+/// This function is typically used for preparing a list of files to be added,
+/// including symlinks and regular files. Directories are handled recursively if specified.
+///
+/// # Arguments
+/// * `path` - Absolute path of the file or directory to process.
+/// * `rel_path` - Relative path for storing in the index.
+/// * `index` - A mutable set collecting index entries (`IndexEntry`) found under the given path.
+/// * `recursive` - If `true`, subdirectories will be traversed recursively.
+///
+/// # Exits
+/// * If a directory is encountered but `recursive` is `false`, prints an error and exits.
 pub fn register_files(path: &str, rel_path: &str, index: &mut HashSet<IndexEntry>, recursive: &bool) {
 
     if &path == &utils::get_git_directory() {

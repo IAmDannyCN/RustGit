@@ -1,3 +1,8 @@
+//! Module: status
+//!
+//! Provides functionality to compare the index against the latest commit and display a human-readable status.
+//! Shows which files have been added, removed, or modified since the last commit.
+
 use std::collections::HashMap;
 use std::collections::HashSet;
 
@@ -5,6 +10,18 @@ use crate::{core::*, utils::*};
 use crate::core::index::IndexEntry;
 use crate::core::commit::{Commit, CommitTrait};
 
+
+/// Compares the given index entries with the contents of a specific commit and returns differences.
+///
+/// # Arguments
+/// * `entries` - A set of index entries currently in the staging area.
+/// * `commit_hash` - The hash of the commit to compare against.
+///
+/// # Returns
+/// A tuple containing:
+/// * Set of files added in the index.
+/// * Set of files removed compared to the commit.
+/// * Set of files modified (with both old and new hashes).
 pub fn diff_index_entries_to_commit(entries: &HashSet<IndexEntry>, commit_hash: &str) ->
     (HashSet<IndexEntry>, HashSet<IndexEntry>, HashSet<(IndexEntry, IndexEntry)>)
 {
@@ -70,6 +87,15 @@ pub fn diff_index_entries_to_commit(entries: &HashSet<IndexEntry>, commit_hash: 
     (add_log, remove_log, modify_log)
 }
 
+
+/// Displays the current status of the working directory and index compared to the last commit.
+///
+/// Shows:
+/// - Files added to the index
+/// - Files removed since the last commit
+/// - Files modified (with old and new blob hashes)
+///
+/// Outputs the result to stderr with colored labels for better readability.
 pub fn status() {
     let index = index::read_index();
 

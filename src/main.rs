@@ -1,3 +1,19 @@
+//! Module: main
+//!
+//! The entry point of the git version control system.
+//! Parses command-line arguments and dispatches to corresponding subcommands.
+//!
+//! Supported commands include:
+//! - `init`: Initialize a new repository
+//! - `add`: Stage files into the index
+//! - `rm`: Remove files from the index or working directory
+//! - `commit`: Record staged changes with a message
+//! - `branch`: Create, delete, or list branches
+//! - `checkout`: Switch branch or commit
+//! - `merge`: Merge two branches
+//! - `status`: Show working tree status
+//! - `log`: View commit history
+
 use clap::{Args, Parser, Subcommand};
 
 mod commands;

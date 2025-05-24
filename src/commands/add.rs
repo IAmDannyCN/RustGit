@@ -1,3 +1,14 @@
+//! Module: add
+//!
+//! Implements add functionality for staging files into the index.
+//! Supports recursive directory addition, blob hashing, and updates to the index.
+//!
+//! Handles:
+//! - Adding new files or directories
+//! - Updating modified files
+//! - Removing deleted files from the index
+//! - Verbose output of changes
+
 use std::collections::HashSet;
 use std::process;
 use std::path::Path;
@@ -6,33 +17,28 @@ use crate::core::blob::BlobTrait;
 use crate::{core::*, utils::*};
 use crate::core::index::{Index, IndexEntry};
 
-fn register_entries(files: &Vec<String>) -> (HashSet<IndexEntry>, HashSet<String>) {
 
-    let repo_path = utils::pwd();
-
-    let mut new_entries: HashSet<IndexEntry> = Default::default();
-    let mut base_entries: HashSet<String> = Default::default();
-    
-    for file in files {
-        let file_path = match Path::new(&file).canonicalize() {
-            Ok(p) => p.to_string_lossy().into_owned(),
-            Err(e) => {
-                eprintln!("Error when canonicalizing path {}: {}", file, e);
-                process::exit(1)
-            }
-        };
-        if !utils::is_subpath(&repo_path, &file_path) {
-            eprintln!("File {} does not belong to repository {}.", file_path, repo_path);
-            process::exit(1);
-        }
-
-        index::register_files(&file_path, &utils::relative_path(&repo_path, &file_path), &mut new_entries, &true);
-        base_entries.insert(file_path);
-    }
-
-    (new_entries, base_entries)
-}
-
+/// Core logic for adding files to the index.
+///
+/// # Arguments
+/// * `files` - List of file/directory paths to add.
+///
+/// # Returns
+/// A tuple containing:
+/// 1. Updated index with new hashes
+/// 2. Set of files added
+/// 3. Set of files removed
+/// 4. Set of files modified
+///
+/// # Behavior
+/// 1. Registers all files recursively using `register_entries`.
+/// 2. Reads current index.
+/// 3. Hashes each file and updates the index accordingly.
+/// 4. Detects and logs additions, modifications, and deletions.
+///
+/// # Exits
+/// * If any path cannot be canonicalized.
+/// * If any path is outside the repository root.
 pub fn add_core(files: &Vec<String>) -> (
     Index,
     HashSet<IndexEntry>,
@@ -114,6 +120,17 @@ pub fn add_core(files: &Vec<String>) -> (
     (index, add_log, remove_log, modify_log)
 }
 
+
+/// Adds the specified files or directories to the index.
+///
+/// # Arguments
+/// * `files` - List of file/directory paths to add.
+/// * `verbose` - If true, displays beautified output instead of just hashes.
+///
+/// # Behavior
+/// 1. Calls `add_core` to compute index updates.
+/// 2. Writes updated index back to disk.
+/// 3. Outputs detailed change log if `verbose` is enabled.
 pub fn add(files: Vec<String>, verbose: bool) {
 
     let (
@@ -149,4 +166,45 @@ pub fn add(files: Vec<String>, verbose: bool) {
         }
     }
     
+}
+
+
+/// Recursively registers files from the given paths into a set of index entries.
+///
+/// # Arguments
+/// * `files` - List of file/directory paths to register.
+///
+/// # Returns
+/// A tuple containing:
+/// 1. Set of unhashed index entries (to be hashed later)
+/// 2. Set of base file paths used for filtering removals
+///
+/// # Exits
+/// * If any path cannot be canonicalized.
+/// * If any path is outside the repository root.
+fn register_entries(files: &Vec<String>) -> (HashSet<IndexEntry>, HashSet<String>) {
+
+    let repo_path = utils::pwd();
+
+    let mut new_entries: HashSet<IndexEntry> = Default::default();
+    let mut base_entries: HashSet<String> = Default::default();
+    
+    for file in files {
+        let file_path = match Path::new(&file).canonicalize() {
+            Ok(p) => p.to_string_lossy().into_owned(),
+            Err(e) => {
+                eprintln!("Error when canonicalizing path {}: {}", file, e);
+                process::exit(1)
+            }
+        };
+        if !utils::is_subpath(&repo_path, &file_path) {
+            eprintln!("File {} does not belong to repository {}.", file_path, repo_path);
+            process::exit(1);
+        }
+
+        index::register_files(&file_path, &utils::relative_path(&repo_path, &file_path), &mut new_entries, &true);
+        base_entries.insert(file_path);
+    }
+
+    (new_entries, base_entries)
 }

@@ -1,8 +1,14 @@
+//! Module: commit
+//!
+//! Provides structures and logic for reading, writing, and comparing commit objects,
+//! including traversal, merge base identification, and detecting uncommitted changes.
+
 use std::{collections::{HashMap, HashSet, VecDeque}, i32::MAX, process};
 
 use crate::{commands::*, utils::*};
 use super::{index::{self, IndexEntry}, object::*, reference, tree::TreeEntry};
 
+/// Struct holding all metadata associated with a commit.
 #[derive(Default)]
 pub struct CommitData {
     pub message: String,
@@ -12,6 +18,10 @@ pub struct CommitData {
     pub parent_commits: Vec<String>,
 }
 
+/// Represents a Git commit object, which stores file content.
+///
+/// - `hash`: Optional SHA-1 hash of the commit content.
+/// - `data`: Optional metadata of the commit.
 pub struct Commit {
     pub hash: Option<String>,
     pub data: Option<CommitData>,
@@ -25,7 +35,9 @@ pub trait CommitTrait {
 
 impl CommitTrait for Commit {
 
-    /// `read_commit`: read file and update `self.data` based on `self.hash`
+    /// Reads the commit object from storage and populates `self.data`.
+    ///
+    /// Requires that `self.hash` is set and `self.data` is empty.
     fn read_commit(&mut self) {
 
         assert!(self.hash.is_none() == false);
@@ -59,7 +71,10 @@ impl CommitTrait for Commit {
 
     }
 
-    /// `write_commit`: calculate `self.hash` and write file based on `self.data`
+
+    /// Serializes and writes the commit to storage.
+    ///
+    /// Calculates the hash if not already present. Prepends "CMIT" as a type header.
     fn write_commit(&mut self) {
 
         assert!(self.data.is_none() == false);
@@ -83,7 +98,8 @@ impl CommitTrait for Commit {
         write_object_file(self.hash.as_ref().unwrap(), &raw_content);
     }
 
-    /// calculate the hash for `commit.data`
+    
+    /// Computes the SHA-1 hash for the commit's content.
     fn calculate_hash(&mut self) {
         assert!(self.data.is_none() == false);
         let commit_data = self.data.as_ref().unwrap();
@@ -96,7 +112,17 @@ impl CommitTrait for Commit {
     }
 }
 
-/// `is_prev_commit_search`: check if `prev_commit_hash` is a parent of `post_commit_hash`
+
+/// Recursively determines whether `prev_commit_hash` is an ancestor of `post_commit_hash`.
+///
+/// # Arguments
+/// * `prev_commit_hash` - The potential ancestor commit hash.
+/// * `post_commit_hash` - The commit hash to start searching from.
+/// * `searched_commits` - A mutable set used to track visited commits and prevent cycles.
+///
+/// # Returns
+/// * `true` if `prev_commit_hash` is an ancestor (or equal to) `post_commit_hash`, or if `prev_commit_hash` is empty.
+/// * `false` otherwise.
 fn is_prev_commit_search(
     prev_commit_hash: &str,
     post_commit_hash: &str,
@@ -128,11 +154,33 @@ fn is_prev_commit_search(
     false
 }
 
+
+/// Determines whether `prev_commit_hash` is an ancestor of `post_commit_hash`.
+///
+/// This is a public interface that wraps the internal recursive function with a fresh `searched_commits` set.
+///
+/// # Arguments
+/// * `prev_commit_hash` - The potential ancestor commit hash.
+/// * `post_commit_hash` - The descendant commit hash to check against.
+///
+/// # Returns
+/// * `true` if `prev_commit_hash` is an ancestor or the same commit.
+/// * `false` otherwise.
 pub fn is_prev_commit(prev_commit_hash: &str, post_commit_hash: &str) -> bool {
     let mut searched_commits = HashSet::new();
     is_prev_commit_search(prev_commit_hash, post_commit_hash, &mut searched_commits)
 }
 
+
+/// Checks if there are any uncommitted changes in either the staging area or working directory.
+///
+/// This function checks two aspects:
+/// 1. If the index (staging area) contains any entries.
+/// 2. If there are changes in the working directory compared to the last commit.
+///
+/// # Returns
+/// * `true` if there are any uncommitted changes.
+/// * `false` if the working directory is clean.
 pub fn check_has_uncommitted() -> bool {
 
     // Check the staging area
@@ -159,6 +207,16 @@ pub fn check_has_uncommitted() -> bool {
     }
 }
 
+
+/// Computes the shortest distance (in number of commits) from the given commit to each of its reachable ancestors.
+///
+/// This is a BFS traversal over the commit graph.
+///
+/// # Arguments
+/// * `commit_hash` - The starting commit hash.
+///
+/// # Returns
+/// * A map of ancestor commit hash → distance (integer depth from `commit_hash`).
 fn get_parent_commit_dis(commit_hash: &str) -> HashMap<String, i32> {
     let mut dis: HashMap<String, i32> = Default::default();
 
@@ -190,6 +248,15 @@ fn get_parent_commit_dis(commit_hash: &str) -> HashMap<String, i32> {
     dis
 }
 
+
+/// Merges two ancestor distance maps and returns a map of common ancestors with summed distances.
+///
+/// # Arguments
+/// * `dis1` - Distance map from first commit.
+/// * `dis2` - Distance map from second commit.
+///
+/// # Returns
+/// * A map containing common ancestors with the sum of their distances from both commits.
 fn merge_parent_commit_dis(dis1: HashMap<String, i32>, dis2: HashMap<String, i32>) -> HashMap<String, i32> {
     let mut dis: HashMap<String, i32> = Default::default();
     for kv in &dis2 {
@@ -201,6 +268,19 @@ fn merge_parent_commit_dis(dis1: HashMap<String, i32>, dis2: HashMap<String, i32
     dis
 }
 
+
+/// Finds the lowest common ancestor (merge base) of two commits by minimizing the sum of distances.
+///
+/// # Arguments
+/// * `c1` - First commit hash.
+/// * `c2` - Second commit hash.
+///
+/// # Returns
+/// * The hash of the merge base commit.
+///
+/// # Panics
+/// * If no common ancestor is found.
+/// * If multiple common ancestors have the same minimal distance (ambiguous base).
 pub fn get_merge_base(c1: &str, c2: &str) -> String {
     
     let dis1 = get_parent_commit_dis(c1);
@@ -231,6 +311,18 @@ pub fn get_merge_base(c1: &str, c2: &str) -> String {
     base_commit.unwrap()
 }
 
+
+/// Compares two sets of blobs (file snapshots) and returns added, removed, and modified files.
+///
+/// # Arguments
+/// * `base_blob_table` - Blob table of the base commit.
+/// * `new_blob_table` - Blob table of the new commit.
+///
+/// # Returns
+/// * Tuple of:
+///     - `added`: files present only in `new_blob_table`
+///     - `removed`: files present only in `base_blob_table`
+///     - `modified`: files present in both but with different hash or type
 pub fn diff_commit_to_commit(
     base_blob_table: &HashMap<String, TreeEntry>,
     new_blob_table: &HashMap<String, TreeEntry>
