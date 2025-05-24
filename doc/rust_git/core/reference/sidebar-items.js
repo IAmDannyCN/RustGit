@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["create_head","get_all_heads","get_current_branch","get_current_commit","get_head","is_prev_branch","store_current_branch_commit","store_current_branch_ref","store_head","try_get_head"]};

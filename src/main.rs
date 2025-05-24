@@ -1,7 +1,4 @@
-//! Module: main
-//!
-//! The entry point of the git version control system.
-//! Parses command-line arguments and dispatches to corresponding subcommands.
+//! A version control system implementing a subset features of Git, written in Rust.
 //!
 //! Supported commands include:
 //! - `init`: Initialize a new repository
@@ -13,6 +10,19 @@
 //! - `merge`: Merge two branches
 //! - `status`: Show working tree status
 //! - `log`: View commit history
+//! 
+//! Support additional features include:
+//! - Detailed, beaufitied output (add `-v` or `--verbose`)
+//! - Operating multiple files or folders in one command
+//! - `git log`, `git status` and `git branch`
+//! - Out-of-folder operation, can assign a working directory by `-p` or `--path`
+//! - DETACH HEAD Mode
+//! - Operation avaliability check (check for uncommited changes/stages before checkout or merge), can be turned on by `-f false` or `--force false`
+//! 
+//! Behaviors different to Git:
+//! - Use self-designed structure and base64 encoding for object storage (binary-INcompatible with Git)
+//! - `-f` or `--force` is ON BY DEFAULT
+//! - `-v` or `--verbose` is OFF BY DEFAULT
 
 use clap::{Args, Parser, Subcommand};
 

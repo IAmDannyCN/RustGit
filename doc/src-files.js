@@ -1,0 +1,3 @@
+var srcIndex = new Map(JSON.parse('[["rust_git",["",[["commands",[],["add.rs","branch.rs","checkout.rs","commit.rs","init.rs","log.rs","merge.rs","mod.rs","rm.rs","status.rs"]],["core",[],["blob.rs","commit.rs","index.rs","mod.rs","object.rs","reference.rs","tree.rs"]],["utils",[],["hash.rs","mod.rs","serialize.rs","storage.rs","utils.rs"]]],["main.rs"]]]]'));
+createSrcSidebar();
+//{"start":36,"fragment_lengths":[321]}

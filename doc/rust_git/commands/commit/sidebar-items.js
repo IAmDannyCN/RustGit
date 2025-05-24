@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["add_entry_to_tree","commit","commit_index","commit_merge","create_tree_for_path","hash_then_write_tree"]};
