@@ -59,7 +59,7 @@ struct CommonArgs {
     path: String,
 
     /// Print verbose information
-    #[arg(short = 'v', long, default_value = "false")]
+    #[arg(short = 'v', long, default_value = "true")]
     verbose: bool,
 }
 
@@ -130,7 +130,7 @@ enum Commands {
         target: String,
 
         /// Force checkout even there are uncommited changes.
-        #[arg(short = 'f', long, default_value = "true")]
+        #[arg(short = 'f', long, default_value = "false")]
         force: bool,
 
         /// Create a new branch and checkout
@@ -147,7 +147,7 @@ enum Commands {
         branch: String,
 
         /// Force merge even there are uncommited changes.
-        #[arg(short = 'f', long, default_value = "true")]
+        #[arg(short = 'f', long, default_value = "false")]
         force: bool,
 
         #[clap(flatten)]

@@ -6,7 +6,7 @@
 use std::{collections::{HashMap, HashSet, VecDeque}, i32::MAX, process};
 
 use crate::{commands::*, utils::*};
-use super::{index::{self, IndexEntry}, object::*, reference, tree::TreeEntry};
+use super::{index::IndexEntry, object::*, reference, tree::TreeEntry};
 
 /// Struct holding all metadata associated with a commit.
 #[derive(Default)]
@@ -184,10 +184,10 @@ pub fn is_prev_commit(prev_commit_hash: &str, post_commit_hash: &str) -> bool {
 pub fn check_has_uncommitted() -> bool {
 
     // Check the staging area
-    let index = index::read_index();
-    if index.len() > 0 {
-        return true;
-    }
+    // let index = index::read_index();
+    // if index.len() > 0 {
+    //     return true;
+    // }
 
     // Check the working area
     let (index, _, _, _) = add::add_core(&[utils::pwd()].to_vec());
