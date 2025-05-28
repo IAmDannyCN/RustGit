@@ -72,7 +72,7 @@ fn delete_original_directory(git_directory: &str) {
         if let Err(e) = fs::remove_dir_all(path) {
             eprintln!("Error deleting original repository: {}", e);
         } else {
-            println!("Reinitialized existing Git repository at: {}", git_directory);
+            eprintln!("Reinitialized existing Git repository at: {}", git_directory);
         }
     }
 }
